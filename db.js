@@ -747,35 +747,6 @@
     return ret;
   }
 
-  // the list of functions to chain
-  var chainList = hash([
-    'each',
-    'find',
-    'findFirst',
-    'group',
-    'has',
-    'hasKey',
-    'indexBy',
-    'insert',
-    'invert',
-    'isin',
-    'keyBy',
-    'lazyView',
-    'like',
-    'missing',
-    'order',
-    'orderBy',
-    'remove',
-    'schema',
-    'select',
-    'slice',
-    'sort',
-    'unset',
-    'update',
-    'view',
-    'where'
-  ]);
-
   // --- START OF AN INSTANCE ----
   //
   // This is the start of a DB instance.
@@ -786,23 +757,21 @@
   // go above!!!!
   //
   self.DB = function(arg0, arg1){
-    var 
-      constraints = {addIf:[]},
-      constrainCache = {},
-      syncList = [],
-      syncLock = false,
-      //
-      // This is our atomic counter that
-      // gets moved forward for different
-      // operations
-      //
-      _ix = {ins:0, del:0},
-      _template = false,
-      ret = expression(),
+    this.constraints = {addIf:[]};
+    this.constrainCache = {};
+    this.syncList = [];
+    this.syncLock = false;
 
-      // globals with respect to this self.
-      _g = {},
-      raw = [];
+    //
+    // This is our atomic counter that
+    // gets moved forward for different
+    // operations
+    //
+    this._ix = {ins:0, del:0};
+    this._template = false;
+
+    // globals with respect to this self.
+    this._g = {}
 
     function sync() {
       if(!syncLock) {
@@ -940,416 +909,416 @@
 
   DB.prototype.has = has;
 
-    // hasKey is to get records that have keys defined
-    DB.prototype.hasKey = function() {
-      var 
-        outer = _.isArr(this) ? this : this.find(),
-        inner = outer.find(missing(slice.call(arguments)));
+  // hasKey is to get records that have keys defined
+  DB.prototype.hasKey = function() {
+    var 
+      outer = _.isArr(this) ? this : this.find(),
+      inner = outer.find(missing(slice.call(arguments)));
 
-      return this.invert(inner, outer);
-    }
+    return this.invert(inner, outer);
+  }
 
-    isin: isin,
-    like: like,
-    invert: function(list, second) { return chain(setdiff(second || raw, list || this)); },
+  DB.prototype.isin = isin;
+  DB.prototype.like = like;
+  DB.prototype.invert = function(list, second) { return chain(setdiff(second || raw, list || this)); },
 
-    // Missing is to get records that have keys not defined
-    missing: function() { 
-      var base = missing(slice.call(arguments));
-      return _.isArr(this) ? this.find(base) : base;
-    },
+  // Missing is to get records that have keys not defined
+  DB.prototype.missing = function() { 
+    var base = missing(slice.call(arguments));
+    return _.isArr(this) ? this.find(base) : base;
+  }
 
-    // The callbacks in this list are called
-    // every time the database changes with
-    // the raw value of the database.
-    //
-    // Note that this is different from the internal
-    // definition of the sync function, which does the
-    // actual synchronization
-    DB.prototype.sync = function(callback) { 
-      if(callback) {
-        syncList.push(callback);
-      } else { 
-        sync();
-      }
-      return ret;
-    },
-
-    template: {
-      create: function(opt) { _template = opt; },
-      update: function(opt) { extend(_template || {}, opt); },
-      get: function() { return _template },
-      destroy: function() { _template = false }
-    },
-
-    // Update allows you to set newvalue to all
-    // parameters matching constraint where constraint
-    // is either a set of K/V pairs or a result
-    // of find so that you can do something like
-    //
-    // Update also can take a callback.
-    //
-    //   var result = db.find(constraint);
-    //   result.update({a: b});
-    //
-    DB.prototype.update = function() {
-      var list = update.apply( _.isArr(this) ? this : ret.find(), arguments) ;
+  // The callbacks in this list are called
+  // every time the database changes with
+  // the raw value of the database.
+  //
+  // Note that this is different from the internal
+  // definition of the sync function, which does the
+  // actual synchronization
+  DB.prototype.sync = function(callback) { 
+    if(callback) {
+      syncList.push(callback);
+    } else { 
       sync();
-      return chain (list);
     }
+    return ret;
+  },
 
-    //
-    // group
-    //
-    // This is like SQLs groupby function. It will take results from any other function and then
-    // return them as a hash where the keys are the field values and the results are an array
-    // of the rows that match that value.
-    //
-    DB.prototype.group = function(field) {
-      var 
-        groupMap = {},
-        filter = _.isArr(this) ? this : ret.find();                 
+  DB.prototype.template = {
+    create: function(opt) { _template = opt; },
+    update: function(opt) { extend(_template || {}, opt); },
+    get: function() { return _template },
+    destroy: function() { _template = false }
+  }
 
-      each(filter, function(which) {
-        if(field in which) {
-          each(which[field], function(what) {
-            // if it's an array, then we do each one.
+  // Update allows you to set newvalue to all
+  // parameters matching constraint where constraint
+  // is either a set of K/V pairs or a result
+  // of find so that you can do something like
+  //
+  // Update also can take a callback.
+  //
+  //   var result = db.find(constraint);
+  //   result.update({a: b});
+  //
+  DB.prototype.update = function() {
+    var list = update.apply( _.isArr(this) ? this : ret.find(), arguments) ;
+    sync();
+    return chain (list);
+  }
 
-            if(! (what in groupMap) ) {
-              groupMap[what] = chain([]);
-            }
+  //
+  // group
+  //
+  // This is like SQLs groupby function. It will take results from any other function and then
+  // return them as a hash where the keys are the field values and the results are an array
+  // of the rows that match that value.
+  //
+  DB.prototype.group = function(field) {
+    var 
+      groupMap = {},
+      filter = _.isArr(this) ? this : ret.find();                 
 
-            groupMap[what].push(which);
-          });
-        }
-      });
-      
-      return groupMap;
-    } 
+    each(filter, function(which) {
+      if(field in which) {
+        each(which[field], function(what) {
+          // if it's an array, then we do each one.
 
-    //
-    // keyBy
-    //
-    // This is like group above but it just maps as a K/V tuple, with 
-    // the duplication policy of the first match being preferred.
-    //
-    DB.prototype.keyBy = function(field) {
-      var groupResult = ret.group.apply(this, arguments);
-
-      each(groupResult, function(key, value) {
-        groupResult[key] = value[0];
-      });
-
-      return groupResult;
-    } 
-
-    //
-    // indexBy is just a sort without a chaining of the args
-    //
-    DB.prototype.indexBy = function () {
-      // alias chain away
-      var _chain = chain; 
-
-      // make chain a dummy function
-      chain = function(m) { return m; }
-
-      // set the order output to the raw
-      ret.__raw__ = raw = ret.order.apply(this, arguments);
-
-      // and then re-assign chain back to the proper place
-      chain = _chain; 
-    }
-
-    //
-    // sort
-    //
-    // This is like SQLs orderby function.  If you pass it just a field, then
-    // the results are returned in ascending order (x - y).  
-    //
-    // You can also supply a second parameter of a case insensitive "asc" and "desc" like in SQL.
-    //
-    DB.prototype.order = DB.prototype.sort = DB.prototype.orderBy = function (arg0, arg1) {
-      var 
-        key, 
-        fnSort,
-        len = arguments.length,
-        order,
-        filter = _.isArr(this) ? this : ret.find();                 
-
-      if(_.isFun(arg0)) {
-        fnSort = arg0;
-      } else if(_.isStr(arg0)) {
-        key = arg0;
-
-        if(len == 1) {
-          order = 'x-y';
-        } else if(len == 2) {
-
-          if(_.isStr(arg1)) {
-            order = {
-              'asc': 'x-y',
-              'desc': 'y-x'
-            }[arg1.toLowerCase()];
-          } else {
-            order = arg1;
+          if(! (what in groupMap) ) {
+            groupMap[what] = chain([]);
           }
-        }
 
-        if(_.isStr(order)) {
-          if(! _orderCache[order]) {
-            order = _orderCache[order] = new Function('x,y', 'return ' + order);
-          } else {
-            order = _orderCache[order];
-          }
-        }
-
-        eval('fnSort=function(a,b){return order(a.' + key + ', b.' + key + ')}');
-      }
-      return chain(slice.call(filter).sort(fnSort));
-    }
-
-    DB.prototype.where = DB.prototype.find = function() {
-      var args = slice.call(arguments || []);
-
-      // Addresses test 23 (Finding: Find all elements cascarded, 3 times)
-      if(!_.isArr(this)) {
-        args = [raw].concat(args);
-      }
-
-      return chain( find.apply(this, args) );
-    }
-
-    //
-    // lazyView
-    //
-    // lazyViews are a variation of views that have to be explicitly rebuilt
-    // on demand with ()
-    //
-    DB.prototype.lazyView = function(field, type) {
-      // keep track
-      var 
-        myix = {del: _ix.del, ins: _ix.ins},
-        keyer;
-      
-      if(field.search(/[()]/) == -1) {
-        if(field.charAt(0) !== '[' || field.charAt(0) !== '.') {
-          field = '.' + field;
-        }
-
-        eval( "keyer = function(r,ref){try{ref[rX] = update[rX] = r;} catch(x){}}".replace(/X/g, field));
-      } else {
-        eval( "keyer = function(r,ref){with(r) { var val = X };try{ref[val] = update[val] = r;} catch(x){}}".replace(/X/g, field));
-      }
-
-      function update(whence) {
-        if(whence) {
-          // if we only care about updating our views
-          // on a new delete, then we check our atomic
-          if(whence == 'del' && myix.del == _ix.del) {
-            return;
-          } else if(whence == 'ins' && myix.ins == _ix.ins) {
-            return;
-          }
-        }
-        myix = {del: _ix.del, ins: _ix.ins};
-
-        var ref = {};
-
-        each(raw, function(row) {
-          keyer(row, ref);
+          groupMap[what].push(which);
         });
-
-        for(var key in update) {
-          if( ! (key in ref) ) {
-            delete update[key];
-          }
-        }
       }
+    });
+    
+    return groupMap;
+  } 
 
-      update();
-      return update;
-    },
+  //
+  // keyBy
+  //
+  // This is like group above but it just maps as a K/V tuple, with 
+  // the duplication policy of the first match being preferred.
+  //
+  DB.prototype.keyBy = function(field) {
+    var groupResult = ret.group.apply(this, arguments);
 
-    //
-    // view 
-    //
-    // Views are an expensive synchronization macro that return 
-    // an object that can be indexed in order to get into the data.
-    //
-    DB.prototype.view = function(field, type) {
-      var fn = ret.lazyView(field, type);
-      ret.sync(fn);
-      return fn;
-    }
+    each(groupResult, function(key, value) {
+      groupResult[key] = value[0];
+    });
 
-    //
-    // select
-    //
-    // This will extract the values of a particular key from the filtered list
-    // and then return it as an array or an array of arrays, depending on
-    // which is relevant for the query.
-    //
-    // You can also do db.select(' * ') to retrieve all fields, although the 
-    // key values of these fields aren't currently being returned.
-    //
-    DB.prototype.select = function(field) {
-      var 
-        filter = _.isArr(this) ? this : ret.find(),
-        fieldCount,
-        resultList = {};
+    return groupResult;
+  } 
 
-      if(arguments.length > 1) {
-        field = slice.call(arguments);
-      } else if (_.isStr(field)) {
-        field = [field];
-      }
+  //
+  // indexBy is just a sort without a chaining of the args
+  //
+  DB.prototype.indexBy = function () {
+    // alias chain away
+    var _chain = chain; 
 
-      fieldCount = field.length;
-      
-      each(field, function(column, iy) {
-        if(column == '*') {
-          resultList = map(filter, values);
+    // make chain a dummy function
+    chain = function(m) { return m; }
+
+    // set the order output to the raw
+    ret.__raw__ = raw = ret.order.apply(this, arguments);
+
+    // and then re-assign chain back to the proper place
+    chain = _chain; 
+  }
+
+  //
+  // sort
+  //
+  // This is like SQLs orderby function.  If you pass it just a field, then
+  // the results are returned in ascending order (x - y).  
+  //
+  // You can also supply a second parameter of a case insensitive "asc" and "desc" like in SQL.
+  //
+  DB.prototype.order = DB.prototype.sort = DB.prototype.orderBy = function (arg0, arg1) {
+    var 
+      key, 
+      fnSort,
+      len = arguments.length,
+      order,
+      filter = _.isArr(this) ? this : ret.find();                 
+
+    if(_.isFun(arg0)) {
+      fnSort = arg0;
+    } else if(_.isStr(arg0)) {
+      key = arg0;
+
+      if(len == 1) {
+        order = 'x-y';
+      } else if(len == 2) {
+
+        if(_.isStr(arg1)) {
+          order = {
+            'asc': 'x-y',
+            'desc': 'y-x'
+          }[arg1.toLowerCase()];
         } else {
-          for(var ix = 0, len = filter.length; ix < len; ix++) {
-            row = filter[ix];
-
-            if(column in row){
-              if(fieldCount > 1) {
-                if(!resultList[ix]) {
-                  resultList[ix] = [];
-                }
-                resultList[ix][iy] = row[column];
-              } else {
-                resultList[ix] = row[column];
-              }
-            }
-          }
+          order = arg1;
         }
-      });
-      
-      return chain(values(resultList));
+      }
+
+      if(_.isStr(order)) {
+        if(! _orderCache[order]) {
+          order = _orderCache[order] = new Function('x,y', 'return ' + order);
+        } else {
+          order = _orderCache[order];
+        }
+      }
+
+      eval('fnSort=function(a,b){return order(a.' + key + ', b.' + key + ')}');
+    }
+    return chain(slice.call(filter).sort(fnSort));
+  }
+
+  DB.prototype.where = DB.prototype.find = function() {
+    var args = slice.call(arguments || []);
+
+    // Addresses test 23 (Finding: Find all elements cascarded, 3 times)
+    if(!_.isArr(this)) {
+      args = [raw].concat(args);
     }
 
-    // 
-    // insert
-    //
-    // This is to insert data into the database.  You can either insert
-    // data as a list of arguments, as an array, or as a single object.
-    //
-    DB.prototype.insert = function(param) {
-      var 
-        ix,
-        unique = constraints.unique,
-        existing = [],
-        toInsert = [],
-        ixList = [];
+    return chain( find.apply(this, args) );
+  }
 
-      //
-      // Parse the args put in.  
-      // 
-      // If it's a comma seperated list then make the 
-      // list to insert all the args
-      if(arguments.length > 1) {
-        toInsert = slice.call(arguments);
+  //
+  // lazyView
+  //
+  // lazyViews are a variation of views that have to be explicitly rebuilt
+  // on demand with ()
+  //
+  DB.prototype.lazyView = function(field, type) {
+    // keep track
+    var 
+      myix = {del: _ix.del, ins: _ix.ins},
+      keyer;
+    
+    if(field.search(/[()]/) == -1) {
+      if(field.charAt(0) !== '[' || field.charAt(0) !== '.') {
+        field = '.' + field;
+      }
 
-        // if it was an array, then just assign it.
-      } else if (_.isArr(param)) {
-        toInsert = param;
+      eval( "keyer = function(r,ref){try{ref[rX] = update[rX] = r;} catch(x){}}".replace(/X/g, field));
+    } else {
+      eval( "keyer = function(r,ref){with(r) { var val = X };try{ref[val] = update[val] = r;} catch(x){}}".replace(/X/g, field));
+    }
 
-        // otherwise it's one argument and 
-        // we just insert that alone.
-      } else {
-        toInsert = [param];
-      } 
-
-      each(toInsert, function(which) {
-        // We first check to make sure we *should* be adding this.
-        var doAdd = true, data;
-
-        // If the unique field has been set then we do
-        // a hash search through the constraints to 
-        // see if it's there.
-        if(unique && (unique in which)) {
-
-          // If the user had opted for a certain field to be unique,
-          // then we find all the matches to that field and create
-          // a block list from them.
-          var key = 'c-' + unique, map_;
-          // We create a lazyView 
-          if(!_g[key]) {
-            _g[key] = ret.lazyView(unique);
-          } else {
-            // Only update if a delete has happened
-            _g[key]('del');
-          }
-
-          map_ = _g[key];
-
-          // This would mean that the candidate to be inserted
-          // should be rejected because it doesn't satisfy the
-          // unique constraint established.
-          if(which[unique] in map_){
-
-            // Create a reference list so we know what was existing
-            existing.push(map_[which[unique]]);
-
-            // put on the existing value
-            ixList.push(map_[which[unique]]);
-
-            // Toggle our doAdd over to false.
-            doAdd = false;
-          } else {
-            // Otherwise we assume it will be added and
-            // put it in our map for future reference.
-            map_[which[unique]] = which;
-          }
-        }
-
-        each(constraints.addIf, function(test) {
-          // Make sure that our candidate passes all tests.
-          doAdd &= test(which);
-        });
-
-        if(!doAdd) {
+    function update(whence) {
+      if(whence) {
+        // if we only care about updating our views
+        // on a new delete, then we check our atomic
+        if(whence == 'del' && myix.del == _ix.del) {
           return;
-        } 
-        // if we got here then we can update 
-        // our dynamic counter.
-        _ix.ins++;
-
-        // If we get here, then the data is going in.
-        ix = raw.length;
-
-        // insert from a template if available
-        if(_template) {
-          var instance = {};
-          
-          // create a template instance that's capable
-          // of holding evaluations
-          each(_template, function(key, value) {
-            if(_.isFun(value)) {
-              instance[ key ] = value();
-            } else {
-              instance[ key ] = value;
-            }
-          });
-
-          // map the values to be inserted upon
-          // the instance of this template
-          which = extend(instance, which);
+        } else if(whence == 'ins' && myix.ins == _ix.ins) {
+          return;
         }
+      }
+      myix = {del: _ix.del, ins: _ix.ins};
 
-        raw.push(which);
+      var ref = {};
 
-        ixList.push(ix);
+      each(raw, function(row) {
+        keyer(row, ref);
       });
 
-      sync();
+      for(var key in update) {
+        if( ! (key in ref) ) {
+          delete update[key];
+        }
+      }
+    }
 
-      return extend(
-        chain(list2data(ixList)),
-        {existing: existing}
-      );
+    update();
+    return update;
+  }
+
+  //
+  // view 
+  //
+  // Views are an expensive synchronization macro that return 
+  // an object that can be indexed in order to get into the data.
+  //
+  DB.prototype.view = function(field, type) {
+    var fn = ret.lazyView(field, type);
+    ret.sync(fn);
+    return fn;
+  }
+
+  //
+  // select
+  //
+  // This will extract the values of a particular key from the filtered list
+  // and then return it as an array or an array of arrays, depending on
+  // which is relevant for the query.
+  //
+  // You can also do db.select(' * ') to retrieve all fields, although the 
+  // key values of these fields aren't currently being returned.
+  //
+  DB.prototype.select = function(field) {
+    var 
+      filter = _.isArr(this) ? this : ret.find(),
+      fieldCount,
+      resultList = {};
+
+    if(arguments.length > 1) {
+      field = slice.call(arguments);
+    } else if (_.isStr(field)) {
+      field = [field];
+    }
+
+    fieldCount = field.length;
+    
+    each(field, function(column, iy) {
+      if(column == '*') {
+        resultList = map(filter, values);
+      } else {
+        for(var ix = 0, len = filter.length; ix < len; ix++) {
+          row = filter[ix];
+
+          if(column in row){
+            if(fieldCount > 1) {
+              if(!resultList[ix]) {
+                resultList[ix] = [];
+              }
+              resultList[ix][iy] = row[column];
+            } else {
+              resultList[ix] = row[column];
+            }
+          }
+        }
+      }
+    });
+    
+    return chain(values(resultList));
+  }
+
+  // 
+  // insert
+  //
+  // This is to insert data into the database.  You can either insert
+  // data as a list of arguments, as an array, or as a single object.
+  //
+  DB.prototype.insert = function(param) {
+    var 
+      ix,
+      unique = constraints.unique,
+      existing = [],
+      toInsert = [],
+      ixList = [];
+
+    //
+    // Parse the args put in.  
+    // 
+    // If it's a comma seperated list then make the 
+    // list to insert all the args
+    if(arguments.length > 1) {
+      toInsert = slice.call(arguments);
+
+      // if it was an array, then just assign it.
+    } else if (_.isArr(param)) {
+      toInsert = param;
+
+      // otherwise it's one argument and 
+      // we just insert that alone.
+    } else {
+      toInsert = [param];
+    } 
+
+    each(toInsert, function(which) {
+      // We first check to make sure we *should* be adding this.
+      var doAdd = true, data;
+
+      // If the unique field has been set then we do
+      // a hash search through the constraints to 
+      // see if it's there.
+      if(unique && (unique in which)) {
+
+        // If the user had opted for a certain field to be unique,
+        // then we find all the matches to that field and create
+        // a block list from them.
+        var key = 'c-' + unique, map_;
+        // We create a lazyView 
+        if(!_g[key]) {
+          _g[key] = ret.lazyView(unique);
+        } else {
+          // Only update if a delete has happened
+          _g[key]('del');
+        }
+
+        map_ = _g[key];
+
+        // This would mean that the candidate to be inserted
+        // should be rejected because it doesn't satisfy the
+        // unique constraint established.
+        if(which[unique] in map_){
+
+          // Create a reference list so we know what was existing
+          existing.push(map_[which[unique]]);
+
+          // put on the existing value
+          ixList.push(map_[which[unique]]);
+
+          // Toggle our doAdd over to false.
+          doAdd = false;
+        } else {
+          // Otherwise we assume it will be added and
+          // put it in our map for future reference.
+          map_[which[unique]] = which;
+        }
+      }
+
+      each(constraints.addIf, function(test) {
+        // Make sure that our candidate passes all tests.
+        doAdd &= test(which);
+      });
+
+      if(!doAdd) {
+        return;
+      } 
+      // if we got here then we can update 
+      // our dynamic counter.
+      _ix.ins++;
+
+      // If we get here, then the data is going in.
+      ix = raw.length;
+
+      // insert from a template if available
+      if(_template) {
+        var instance = {};
+        
+        // create a template instance that's capable
+        // of holding evaluations
+        each(_template, function(key, value) {
+          if(_.isFun(value)) {
+            instance[ key ] = value();
+          } else {
+            instance[ key ] = value;
+          }
+        });
+
+        // map the values to be inserted upon
+        // the instance of this template
+        which = extend(instance, which);
+      }
+
+      raw.push(which);
+
+      ixList.push(ix);
+    });
+
+    sync();
+
+    return extend(
+      chain(list2data(ixList)),
+      {existing: existing}
+    );
     }
 
     // 
