@@ -804,9 +804,7 @@
   }
 
   DB.prototype.slice = function() {
-    var filter = _.isArr(this) ? this : ret.find()
-
-    return(chain( slice.apply(filter, arguments) ) );
+    return(chain( slice.apply(this, arguments) ) );
   }
 
   
@@ -837,13 +835,12 @@
     // makes no sense whatsoever.
     var 
       agg = {}, 
-      list = _.isArr(this) ? this : ret.find(),
-      len = list.length, 
+      len = this.length, 
       skip = Math.ceil(Math.min(10, len / 3)),
       entry;
 
     for(var i = 0; i < len; i += skip ) {
-      entry = list[i];
+      entry = this[i];
 
       for(var key in entry) {
         agg[key] = _u;
@@ -861,21 +858,21 @@
   // this key ... it just does a lookup every time as of now.
   //
   DB.prototype.constrain = function() { 
-    extend(constraints, kvarg(arguments)); 
+    extend(this.constraints, kvarg(arguments)); 
   }
     
   // Adds if and only if a function matches a constraint
   DB.prototype.addIf = function( lambda ) {
     if(lambda) {
-      constraints.addIf.push(lambda);
+      this.constraints.addIf.push(lambda);
     }
-    return constraints.addIf;
+    return this.constraints.addIf;
   }
 
   // beforeAdd allows you to mutate data prior to insertion.
   // It's really an addIf that returns true
   DB.prototype.beforeAdd = function( lambda ) {
-    return ret.addIf(
+    return this.addIf(
       lambda ? 
           function() { lambda.apply(0, arguments); return true; } 
         : false
@@ -887,7 +884,7 @@
       return each(key, arguments.callee);
     } else {
       var list = _.isArr(this) ? this : ret.find();
-      each(list, function(what) {
+      each(this, function(what) {
         if(key in what) {
           delete what[key];
         }
@@ -911,16 +908,16 @@
 
   // hasKey is to get records that have keys defined
   DB.prototype.hasKey = function() {
-    var 
-      outer = _.isArr(this) ? this : this.find(),
-      inner = outer.find(missing(slice.call(arguments)));
+    var inner = outer.find(missing(slice.call(arguments)));
 
-    return this.invert(inner, outer);
+    return this.invert(inner, this);
   }
 
   DB.prototype.isin = isin;
   DB.prototype.like = like;
-  DB.prototype.invert = function(list, second) { return chain(setdiff(second || raw, list || this)); },
+  DB.prototype.invert = function(list, second) { 
+    return chain(setdiff(second || raw, list || this)); 
+  }
 
   // Missing is to get records that have keys not defined
   DB.prototype.missing = function() { 
@@ -942,7 +939,7 @@
       sync();
     }
     return ret;
-  },
+  }
 
   DB.prototype.template = {
     create: function(opt) { _template = opt; },
