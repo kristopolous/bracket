@@ -756,7 +756,7 @@
   // in a language such as Java or C++ should
   // go above!!!!
   //
-  self.DB = function(arg0, arg1){
+  var DB = self.DB = function(arg0, arg1){
     this.constraints = {addIf:[]};
     this.constrainCache = {};
     this.syncList = [];
@@ -773,35 +773,56 @@
     // globals with respect to this self.
     this._g = {}
 
-    function sync() {
-      if(!syncLock) {
-        syncLock = true;
-        each(syncList, function(which) { which.call(ret, raw); });
-        syncLock = false;
-      }
+
+    // The ability to import a database from somewhere
+    if (arguments.length == 1) {
+      if(_.isArr(arg0)) { ret.insert(arg0) }
+      else if(_.isFun(arg0)) { ret.insert(arg0()) }
+      else if(_.isStr(arg0)) { return ret.apply(this, arguments) }
+      else if(_.isObj(arg0)) { ret.insert(arg0) }
+    } else if(arguments.length > 1) {
+      ret.insert(slice.call(arguments));
     }
 
-    function chain(list) {
-      for(var func in chainList) {
-        list[func] = ret[func];
-      }
+    // Assign this after initialization
+    ret.__raw__ = raw;
+    
+    // Register this instance.
+    DB.all.push(ret);
 
-      list.first = list[0];
-      list.last = list[list.length - 1];
+  }
 
-      return list;
-    }
-
-    function list2data(list) {
-      var ret = [];
-
-      for(var ix = 0, len = list.length; ix < len; ix++) {
-        ret[ix] = raw[list[ix]];
-      }
-
-      return ret;
+  DB.prototype.sync = function() {
+    if(!this.syncLock) {
+      this.syncLock = true;
+      each(this.syncList, function(which) { which.call(ret, this); });
+      this.syncLock = false;
     }
   }
+
+  DB.prototype.chain = function (list) {
+    for(var func in chainList) {
+      list[func] = ret[func];
+    }
+
+    list.first = list[0];
+    list.last = list[list.length - 1];
+
+    return list;
+  }
+
+  DB.prototype.list2data = function (list) {
+    var ret = [];
+
+    for(var ix = 0, len = list.length; ix < len; ix++) {
+      ret[ix] = this[list[ix]];
+    }
+
+    return ret;
+  }
+
+  DB.prototype = Object.create(Array.prototype);
+  DB.prototype.constructor = DB;
 
   DB.prototype.slice = function() {
     return(chain( slice.apply(this, arguments) ) );
@@ -810,12 +831,12 @@
   
   DB.prototype.transaction = {
     start: function() {
-      syncLock = true;
+      this.syncLock = true;
     },
     end: function(){
       // Have to turn the syncLock off prior to attempting it.
-      syncLock = false;
-      sync();
+      this.syncLock = false;
+      this.sync();
     }
   }
 
@@ -922,7 +943,7 @@
   // Missing is to get records that have keys not defined
   DB.prototype.missing = function() { 
     var base = missing(slice.call(arguments));
-    return _.isArr(this) ? this.find(base) : base;
+    return this.find(base);
   }
 
   // The callbacks in this list are called
@@ -934,11 +955,11 @@
   // actual synchronization
   DB.prototype.sync = function(callback) { 
     if(callback) {
-      syncList.push(callback);
+      this.syncList.push(callback);
     } else { 
-      sync();
+      this.sync();
     }
-    return ret;
+    return this;
   }
 
   DB.prototype.template = {
@@ -959,7 +980,7 @@
   //   result.update({a: b});
   //
   DB.prototype.update = function() {
-    var list = update.apply( _.isArr(this) ? this : ret.find(), arguments) ;
+    var list = update.apply( this, arguments) ;
     sync();
     return chain (list);
   }
@@ -972,11 +993,9 @@
   // of the rows that match that value.
   //
   DB.prototype.group = function(field) {
-    var 
-      groupMap = {},
-      filter = _.isArr(this) ? this : ret.find();                 
+    var groupMap = {};
 
-    each(filter, function(which) {
+    each(this, function(which) {
       if(field in which) {
         each(which[field], function(what) {
           // if it's an array, then we do each one.
@@ -1039,8 +1058,7 @@
       key, 
       fnSort,
       len = arguments.length,
-      order,
-      filter = _.isArr(this) ? this : ret.find();                 
+      order;
 
     if(_.isFun(arg0)) {
       fnSort = arg0;
@@ -1071,7 +1089,7 @@
 
       eval('fnSort=function(a,b){return order(a.' + key + ', b.' + key + ')}');
     }
-    return chain(slice.call(filter).sort(fnSort));
+    return chain(this.sort(fnSort));
   }
 
   DB.prototype.where = DB.prototype.find = function() {
@@ -1160,7 +1178,7 @@
   //
   DB.prototype.select = function(field) {
     var 
-      filter = _.isArr(this) ? this : ret.find(),
+      filter = this,
       fieldCount,
       resultList = {};
 
@@ -1205,7 +1223,7 @@
   DB.prototype.insert = function(param) {
     var 
       ix,
-      unique = constraints.unique,
+      unique = this.constraints.unique,
       existing = [],
       toInsert = [],
       ixList = [];
@@ -1240,16 +1258,19 @@
         // If the user had opted for a certain field to be unique,
         // then we find all the matches to that field and create
         // a block list from them.
-        var key = 'c-' + unique, map_;
+        var 
+          key = 'c-' + unique, 
+          map_;
+
         // We create a lazyView 
-        if(!_g[key]) {
-          _g[key] = ret.lazyView(unique);
+        if(!this._g[key]) {
+          this._g[key] = this.lazyView(unique);
         } else {
           // Only update if a delete has happened
-          _g[key]('del');
+          this._g[key]('del');
         }
 
-        map_ = _g[key];
+        map_ = this._g[key];
 
         // This would mean that the candidate to be inserted
         // should be rejected because it doesn't satisfy the
@@ -1271,7 +1292,7 @@
         }
       }
 
-      each(constraints.addIf, function(test) {
+      each(this.constraints.addIf, function(test) {
         // Make sure that our candidate passes all tests.
         doAdd &= test(which);
       });
@@ -1281,7 +1302,7 @@
       } 
       // if we got here then we can update 
       // our dynamic counter.
-      _ix.ins++;
+      this._ix.ins++;
 
       // If we get here, then the data is going in.
       ix = raw.length;
@@ -1305,7 +1326,7 @@
         which = extend(instance, which);
       }
 
-      raw.push(which);
+      this.push(which);
 
       ixList.push(ix);
     });
@@ -1316,7 +1337,7 @@
       chain(list2data(ixList)),
       {existing: existing}
     );
-    }
+  }
 
     // 
     // The quickest way to do an insert. 
@@ -1384,25 +1405,6 @@
       }
       return chain(save.reverse());
     }
-
-    // The ability to import a database from somewhere
-    if (arguments.length == 1) {
-      if(_.isArr(arg0)) { ret.insert(arg0) }
-      else if(_.isFun(arg0)) { ret.insert(arg0()) }
-      else if(_.isStr(arg0)) { return ret.apply(this, arguments) }
-      else if(_.isObj(arg0)) { ret.insert(arg0) }
-    } else if(arguments.length > 1) {
-      ret.insert(slice.call(arguments));
-    }
-
-    // Assign this after initialization
-    ret.__raw__ = raw;
-    
-    // Register this instance.
-    DB.all.push(ret);
-
-    return ret;
-  }
 
   extend(DB, {
     all: [],
