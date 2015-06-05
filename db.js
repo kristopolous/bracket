@@ -758,7 +758,6 @@
   //
   var DB = self.DB = function(arg0, arg1){
     this.constraints = {addIf:[]};
-    this.constrainCache = {};
     this.syncList = [];
     this.syncLock = false;
 
@@ -773,20 +772,16 @@
     // globals with respect to this self.
     this._g = {}
 
-
     // The ability to import a database from somewhere
     if (arguments.length == 1) {
-      if(_.isArr(arg0)) { ret.insert(arg0) }
-      else if(_.isFun(arg0)) { ret.insert(arg0()) }
-      else if(_.isStr(arg0)) { return ret.apply(this, arguments) }
-      else if(_.isObj(arg0)) { ret.insert(arg0) }
+      if(_.isArr(arg0)) { this.insert(arg0) }
+      else if(_.isFun(arg0)) { this.insert(arg0()) }
+      else if(_.isStr(arg0)) { return DB.apply(this, arguments) }
+      else if(_.isObj(arg0)) { this.insert(arg0) }
     } else if(arguments.length > 1) {
-      ret.insert(slice.call(arguments));
+      this.insert(slice.call(arguments));
     }
 
-    // Assign this after initialization
-    ret.__raw__ = raw;
-    
     // Register this instance.
     DB.all.push(ret);
 
@@ -937,7 +932,7 @@
   DB.prototype.isin = isin;
   DB.prototype.like = like;
   DB.prototype.invert = function(list, second) { 
-    return chain(setdiff(second || raw, list || this)); 
+    return chain(setdiff(second || this, list || this)); 
   }
 
   // Missing is to get records that have keys not defined
@@ -1032,17 +1027,8 @@
   // indexBy is just a sort without a chaining of the args
   //
   DB.prototype.indexBy = function () {
-    // alias chain away
-    var _chain = chain; 
-
-    // make chain a dummy function
-    chain = function(m) { return m; }
-
     // set the order output to the raw
-    ret.__raw__ = raw = ret.order.apply(this, arguments);
-
-    // and then re-assign chain back to the proper place
-    chain = _chain; 
+    this.splice.apply(this, [0,0].concat(this.order.apply(this, arguments)));
   }
 
   //
@@ -1097,7 +1083,7 @@
 
     // Addresses test 23 (Finding: Find all elements cascarded, 3 times)
     if(!_.isArr(this)) {
-      args = [raw].concat(args);
+      args = [this].concat(args);
     }
 
     return chain( find.apply(this, args) );
@@ -1139,7 +1125,7 @@
 
       var ref = {};
 
-      each(raw, function(row) {
+      each(this, function(row) {
         keyer(row, ref);
       });
 
@@ -1305,7 +1291,7 @@
       this._ix.ins++;
 
       // If we get here, then the data is going in.
-      ix = raw.length;
+      ix = this.length;
 
       // insert from a template if available
       if(_template) {
@@ -1344,7 +1330,7 @@
     // This checks for absolutely nothing.
     //
     DB.prototype.flash = function(list) {
-      ret.__raw__ = raw = raw.concat(list);
+      this.splice.apply(this, [0,0].concat(list));
     }
 
     //
@@ -1365,27 +1351,27 @@
       else if(arguments.length > 0){ 
         save = ret.find.apply(this, arguments);
         if(save.length) {
-          ret.__raw__ = raw = ret.invert(save);
+          this.splice.apply(this, [0, this.length].concat(this.invert(save)));
           console.log(raw);
-          _ix.del++;
+          this._ix.del++;
           sync();
         }
         return chain(save.reverse());
       } 
 
-      else { list = ret.find(); }
+      else { list = this.find(); }
 
       stain(list);
 
-      for(var ix = raw.length - 1, end = raw.length; ix >= 0; ix--) {
-        if (isStained(raw[ix])) { 
-          unstain(raw[ix]);
-          save.push(raw[ix]);
+      for(var ix = this.length - 1, end = this.length; ix >= 0; ix--) {
+        if (isStained(this[ix])) { 
+          unstain(this[ix]);
+          save.push(this[ix]);
           continue;
         }
         if(end - (ix + 1)) {
           start = ix + 1;
-          raw.splice(start, end - start);
+          this.splice(start, end - start);
           isDirty = true;
         }
         end = ix;
@@ -1393,7 +1379,7 @@
 
       start = ix + 1;
       if(end - start) {
-        raw.splice(start, end - start);
+        this.splice(start, end - start);
         isDirty = true;
       }
 
