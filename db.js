@@ -747,6 +747,10 @@
     return ret;
   }
 
+  function chain (list) {
+    return (new DB()).concat(list);
+  }
+
   // --- START OF AN INSTANCE ----
   //
   // This is the start of a DB instance.
@@ -795,15 +799,33 @@
     }
   }
 
-  DB.prototype.chain = function (list) {
-    for(var func in chainList) {
-      list[func] = ret[func];
-    }
+  // See the interesting 1-person discussion with myself here:
+  // http://stackoverflow.com/questions/30741140/can-javascript-do-polymorphic-duck-typing-for-arrays-see-details
+  DB.prototype.concat = function() {
+    // We start with a new instance of our own object, myArray
+    var ret = new DB();
 
-    list.first = list[0];
-    list.last = list[list.length - 1];
+    // utilize the in-place `splice` to keep the type as `myArray`
+    ret.splice.apply(
 
-    return list;
+      // contextualize it for our own object
+      ret, 
+      Array.prototype.concat.apply( 
+        // call it with the start and end of our empty object
+        [0, 0],
+
+        // with our object as an array
+        Array.prototype.slice.call(this).concat(
+
+          // added to the arguments, as an array
+          Array.prototype.slice.call(arguments) 
+        )
+      ) 
+    );
+
+    // since splice returns the stuff that was removed, we
+    // need to have an additional line here.
+    return ret;
   }
 
   DB.prototype.list2data = function (list) {
@@ -819,11 +841,6 @@
   DB.prototype = Object.create(Array.prototype);
   DB.prototype.constructor = DB;
 
-  DB.prototype.slice = function() {
-    return(chain( slice.apply(this, arguments) ) );
-  }
-
-  
   DB.prototype.transaction = {
     start: function() {
       this.syncLock = true;
@@ -1325,72 +1342,72 @@
     );
   }
 
-    // 
-    // The quickest way to do an insert. 
-    // This checks for absolutely nothing.
-    //
-    DB.prototype.flash = function(list) {
-      this.splice.apply(this, [0,0].concat(list));
-    }
+  // 
+  // The quickest way to do an insert. 
+  // This checks for absolutely nothing.
+  //
+  DB.prototype.flash = function(list) {
+    this.splice.apply(this, [0,0].concat(list));
+  }
 
-    //
-    // remove
-    // 
-    // This will remove the entries from the database but also return them if
-    // you want to manipulate them.  You can invoke this with a constraint.
-    //
-    DB.prototype.remove = function(arg0, arg1) {
-      var 
-        isDirty = false,
-        end, start,
-        list,
-        save = [];
+  //
+  // remove
+  // 
+  // This will remove the entries from the database but also return them if
+  // you want to manipulate them.  You can invoke this with a constraint.
+  //
+  DB.prototype.remove = function(arg0, arg1) {
+    var 
+      isDirty = false,
+      end, start,
+      list,
+      save = [];
 
-      if(_.isArr(this)) { list = this; } 
-      else if(_.isArr(arg0)) { list = arg0; } 
-      else if(arguments.length > 0){ 
-        save = ret.find.apply(this, arguments);
-        if(save.length) {
-          this.splice.apply(this, [0, this.length].concat(this.invert(save)));
-          console.log(raw);
-          this._ix.del++;
-          sync();
-        }
-        return chain(save.reverse());
-      } 
-
-      else { list = this.find(); }
-
-      stain(list);
-
-      for(var ix = this.length - 1, end = this.length; ix >= 0; ix--) {
-        if (isStained(this[ix])) { 
-          unstain(this[ix]);
-          save.push(this[ix]);
-          continue;
-        }
-        if(end - (ix + 1)) {
-          start = ix + 1;
-          this.splice(start, end - start);
-          isDirty = true;
-        }
-        end = ix;
-      }
-
-      start = ix + 1;
-      if(end - start) {
-        this.splice(start, end - start);
-        isDirty = true;
-      }
-
-      if(isDirty) {
-        // If we've spliced, then we sync and update our
-        // atomic delete counter
-        _ix.del++;
+    if(_.isArr(this)) { list = this; } 
+    else if(_.isArr(arg0)) { list = arg0; } 
+    else if(arguments.length > 0){ 
+      save = ret.find.apply(this, arguments);
+      if(save.length) {
+        this.splice.apply(this, [0, this.length].concat(this.invert(save)));
+        console.log(raw);
+        this._ix.del++;
         sync();
       }
       return chain(save.reverse());
+    } 
+
+    else { list = this.find(); }
+
+    stain(list);
+
+    for(var ix = this.length - 1, end = this.length; ix >= 0; ix--) {
+      if (isStained(this[ix])) { 
+        unstain(this[ix]);
+        save.push(this[ix]);
+        continue;
+      }
+      if(end - (ix + 1)) {
+        start = ix + 1;
+        this.splice(start, end - start);
+        isDirty = true;
+      }
+      end = ix;
     }
+
+    start = ix + 1;
+    if(end - start) {
+      this.splice(start, end - start);
+      isDirty = true;
+    }
+
+    if(isDirty) {
+      // If we've spliced, then we sync and update our
+      // atomic delete counter
+      _ix.del++;
+      sync();
+    }
+    return chain(save.reverse());
+  }
 
   extend(DB, {
     all: [],
