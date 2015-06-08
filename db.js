@@ -832,174 +832,171 @@
 
       return ret;
     }
+  }
 
-    extend(ret, {
+  DB.prototype.slice = function() {
+    var filter = _.isArr(this) ? this : ret.find()
 
-      slice: function() {
-        var filter = _.isArr(this) ? this : ret.find()
+    return(chain( slice.apply(filter, arguments) ) );
+  }
 
-        return(chain( slice.apply(filter, arguments) ) );
-      },
+  
+  DB.prototype.transaction = {
+    start: function() {
+      syncLock = true;
+    },
+    end: function(){
+      // Have to turn the syncLock off prior to attempting it.
+      syncLock = false;
+      sync();
+    }
+  }
 
-      transaction: {
-        start: function() {
-          syncLock = true;
-        },
-        end: function(){
-          // Have to turn the syncLock off prior to attempting it.
-          syncLock = false;
-          sync();
-        }
-      },
+  // This isn't a true schema derivation ... it's a spot check
+  // over the data-set to try to show a general schema ... since
+  // this is essentially a schema-less document store there could
+  // be things missing.
+  //
+  DB.prototype.schema = function() {
+    // rand() is slow on android (2013-01) and the entropy 
+    // can have some issues so we don't try doing that.
+    // The interwebs claims that every 10th sampling is a good
+    // way to roll, so let's do that.
+    //
+    // Js perf says a trivial double for is the way to roll
+    // with a very slight edge for caching ... although this
+    // makes no sense whatsoever.
+    var 
+      agg = {}, 
+      list = _.isArr(this) ? this : ret.find(),
+      len = list.length, 
+      skip = Math.ceil(Math.min(10, len / 3)),
+      entry;
 
-      // This isn't a true schema derivation ... it's a spot check
-      // over the data-set to try to show a general schema ... since
-      // this is essentially a schema-less document store there could
-      // be things missing.
-      //
-      schema: function() {
-        // rand() is slow on android (2013-01) and the entropy 
-        // can have some issues so we don't try doing that.
-        // The interwebs claims that every 10th sampling is a good
-        // way to roll, so let's do that.
-        //
-        // Js perf says a trivial double for is the way to roll
-        // with a very slight edge for caching ... although this
-        // makes no sense whatsoever.
-        var 
-          agg = {}, 
-          list = _.isArr(this) ? this : ret.find(),
-          len = list.length, 
-          skip = Math.ceil(Math.min(10, len / 3)),
-          entry;
+    for(var i = 0; i < len; i += skip ) {
+      entry = list[i];
 
-        for(var i = 0; i < len; i += skip ) {
-          entry = list[i];
-
-          for(var key in entry) {
-            agg[key] = _u;
-          }
-        }
-
-        return keys(agg);
-      },
-
-      // 
-      // This is to constrain the database.  Currently you can enforce a unique
-      // key value through something like `db.constrain('unique', 'somekey')`.
-      // You should probably run this early, as unlike in RDBMSs, it doesn't do
-      // a historical check nor does it create a optimized hash to index by
-      // this key ... it just does a lookup every time as of now.
-      //
-      constrain: function() { 
-        extend(constraints, kvarg(arguments)); 
-      },
-      
-      // Adds if and only if a function matches a constraint
-      addIf: function( lambda ) {
-        if(lambda) {
-          constraints.addIf.push(lambda);
-        }
-        return constraints.addIf;
-      },
-
-      // beforeAdd allows you to mutate data prior to insertion.
-      // It's really an addIf that returns true
-      beforeAdd: function( lambda ) {
-        return ret.addIf(
-          lambda ? 
-              function() { lambda.apply(0, arguments); return true; } 
-            : false
-          )
-      },
-
-      unset: function(key) {
-        if(_.isArr(key)) {
-          return each(key, arguments.callee);
-        } else {
-          var list = _.isArr(this) ? this : ret.find();
-          each(list, function(what) {
-            if(key in what) {
-              delete what[key];
-            }
-          });
-          sync();
-          return chain(list);
-        }
-      },
-
-      each: eachRun,
-      map: eachRun,
-      not: not,
-    
-      // This is a shorthand to find for when you are only expecting one result.
-      // A boolean false is returned if nothing is found
-      findFirst: function(){
-        var res = ret.find.apply(this, arguments);
-        return res.length ? res[0] : false;
-      },
-
-      has: has,
-
-      // hasKey is to get records that have keys defined
-      hasKey: function() {
-        var 
-          outer = _.isArr(this) ? this : this.find(),
-          inner = outer.find(missing(slice.call(arguments)));
-
-        return this.invert(inner, outer);
-      },
-
-      isin: isin,
-      like: like,
-      invert: function(list, second) { return chain(setdiff(second || raw, list || this)); },
-
-      // Missing is to get records that have keys not defined
-      missing: function() { 
-        var base = missing(slice.call(arguments));
-        return _.isArr(this) ? this.find(base) : base;
-      },
-
-      // The callbacks in this list are called
-      // every time the database changes with
-      // the raw value of the database.
-      //
-      // Note that this is different from the internal
-      // definition of the sync function, which does the
-      // actual synchronization
-      sync: function(callback) { 
-        if(callback) {
-          syncList.push(callback);
-        } else { 
-          sync();
-        }
-        return ret;
-      },
-
-      template: {
-        create: function(opt) { _template = opt; },
-        update: function(opt) { extend(_template || {}, opt); },
-        get: function() { return _template },
-        destroy: function() { _template = false }
-      },
-
-      // Update allows you to set newvalue to all
-      // parameters matching constraint where constraint
-      // is either a set of K/V pairs or a result
-      // of find so that you can do something like
-      //
-      // Update also can take a callback.
-      //
-      //   var result = db.find(constraint);
-      //   result.update({a: b});
-      //
-      update: function() {
-        var list = update.apply( _.isArr(this) ? this : ret.find(), arguments) ;
-        sync();
-        return chain (list);
+      for(var key in entry) {
+        agg[key] = _u;
       }
+    }
 
-    });
+    return keys(agg);
+  }
+
+  // 
+  // This is to constrain the database.  Currently you can enforce a unique
+  // key value through something like `db.constrain('unique', 'somekey')`.
+  // You should probably run this early, as unlike in RDBMSs, it doesn't do
+  // a historical check nor does it create a optimized hash to index by
+  // this key ... it just does a lookup every time as of now.
+  //
+  DB.prototype.constrain = function() { 
+    extend(constraints, kvarg(arguments)); 
+  }
+    
+  // Adds if and only if a function matches a constraint
+  DB.prototype.addIf = function( lambda ) {
+    if(lambda) {
+      constraints.addIf.push(lambda);
+    }
+    return constraints.addIf;
+  }
+
+  // beforeAdd allows you to mutate data prior to insertion.
+  // It's really an addIf that returns true
+  DB.prototype.beforeAdd = function( lambda ) {
+    return ret.addIf(
+      lambda ? 
+          function() { lambda.apply(0, arguments); return true; } 
+        : false
+      )
+  }
+
+  DB.prototype.unset = function(key) {
+    if(_.isArr(key)) {
+      return each(key, arguments.callee);
+    } else {
+      var list = _.isArr(this) ? this : ret.find();
+      each(list, function(what) {
+        if(key in what) {
+          delete what[key];
+        }
+      });
+      sync();
+      return chain(list);
+    }
+  }
+
+  DB.prototype.each = DB.prototype.map = eachRun;
+  DB.prototype.not = not;
+
+  // This is a shorthand to find for when you are only expecting one result.
+  // A boolean false is returned if nothing is found
+  DB.prototype.findFirst = function(){
+    var res = ret.find.apply(this, arguments);
+    return res.length ? res[0] : false;
+  }
+
+  DB.prototype.has = has;
+
+    // hasKey is to get records that have keys defined
+    DB.prototype.hasKey = function() {
+      var 
+        outer = _.isArr(this) ? this : this.find(),
+        inner = outer.find(missing(slice.call(arguments)));
+
+      return this.invert(inner, outer);
+    }
+
+    isin: isin,
+    like: like,
+    invert: function(list, second) { return chain(setdiff(second || raw, list || this)); },
+
+    // Missing is to get records that have keys not defined
+    missing: function() { 
+      var base = missing(slice.call(arguments));
+      return _.isArr(this) ? this.find(base) : base;
+    },
+
+    // The callbacks in this list are called
+    // every time the database changes with
+    // the raw value of the database.
+    //
+    // Note that this is different from the internal
+    // definition of the sync function, which does the
+    // actual synchronization
+    DB.prototype.sync = function(callback) { 
+      if(callback) {
+        syncList.push(callback);
+      } else { 
+        sync();
+      }
+      return ret;
+    },
+
+    template: {
+      create: function(opt) { _template = opt; },
+      update: function(opt) { extend(_template || {}, opt); },
+      get: function() { return _template },
+      destroy: function() { _template = false }
+    },
+
+    // Update allows you to set newvalue to all
+    // parameters matching constraint where constraint
+    // is either a set of K/V pairs or a result
+    // of find so that you can do something like
+    //
+    // Update also can take a callback.
+    //
+    //   var result = db.find(constraint);
+    //   result.update({a: b});
+    //
+    DB.prototype.update = function() {
+      var list = update.apply( _.isArr(this) ? this : ret.find(), arguments) ;
+      sync();
+      return chain (list);
+    }
 
     //
     // group
@@ -1008,7 +1005,7 @@
     // return them as a hash where the keys are the field values and the results are an array
     // of the rows that match that value.
     //
-    ret.group = function(field) {
+    DB.prototype.group = function(field) {
       var 
         groupMap = {},
         filter = _.isArr(this) ? this : ret.find();                 
@@ -1036,7 +1033,7 @@
     // This is like group above but it just maps as a K/V tuple, with 
     // the duplication policy of the first match being preferred.
     //
-    ret.keyBy = function(field) {
+    DB.prototype.keyBy = function(field) {
       var groupResult = ret.group.apply(this, arguments);
 
       each(groupResult, function(key, value) {
@@ -1049,7 +1046,7 @@
     //
     // indexBy is just a sort without a chaining of the args
     //
-    ret.indexBy = function () {
+    DB.prototype.indexBy = function () {
       // alias chain away
       var _chain = chain; 
 
@@ -1071,7 +1068,7 @@
     //
     // You can also supply a second parameter of a case insensitive "asc" and "desc" like in SQL.
     //
-    ret.order = ret.sort = ret.orderBy = function (arg0, arg1) {
+    DB.prototype.order = DB.prototype.sort = DB.prototype.orderBy = function (arg0, arg1) {
       var 
         key, 
         fnSort,
@@ -1111,7 +1108,7 @@
       return chain(slice.call(filter).sort(fnSort));
     }
 
-    ret.where = ret.find = function() {
+    DB.prototype.where = DB.prototype.find = function() {
       var args = slice.call(arguments || []);
 
       // Addresses test 23 (Finding: Find all elements cascarded, 3 times)
@@ -1128,7 +1125,7 @@
     // lazyViews are a variation of views that have to be explicitly rebuilt
     // on demand with ()
     //
-    ret.lazyView = function(field, type) {
+    DB.prototype.lazyView = function(field, type) {
       // keep track
       var 
         myix = {del: _ix.del, ins: _ix.ins},
@@ -1179,7 +1176,7 @@
     // Views are an expensive synchronization macro that return 
     // an object that can be indexed in order to get into the data.
     //
-    ret.view = function(field, type) {
+    DB.prototype.view = function(field, type) {
       var fn = ret.lazyView(field, type);
       ret.sync(fn);
       return fn;
@@ -1195,7 +1192,7 @@
     // You can also do db.select(' * ') to retrieve all fields, although the 
     // key values of these fields aren't currently being returned.
     //
-    ret.select = function(field) {
+    DB.prototype.select = function(field) {
       var 
         filter = _.isArr(this) ? this : ret.find(),
         fieldCount,
@@ -1239,7 +1236,7 @@
     // This is to insert data into the database.  You can either insert
     // data as a list of arguments, as an array, or as a single object.
     //
-    ret.insert = function(param) {
+    DB.prototype.insert = function(param) {
       var 
         ix,
         unique = constraints.unique,
@@ -1359,7 +1356,7 @@
     // The quickest way to do an insert. 
     // This checks for absolutely nothing.
     //
-    ret.flash = function(list) {
+    DB.prototype.flash = function(list) {
       ret.__raw__ = raw = raw.concat(list);
     }
 
@@ -1369,7 +1366,7 @@
     // This will remove the entries from the database but also return them if
     // you want to manipulate them.  You can invoke this with a constraint.
     //
-    ret.remove = function(arg0, arg1) {
+    DB.prototype.remove = function(arg0, arg1) {
       var 
         isDirty = false,
         end, start,
