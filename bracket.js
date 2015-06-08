@@ -1,8 +1,8 @@
 //
-// db.js Javascript Database 
+// bracket.js Javascript Database 
 // https://github.com/kristopolous/db.js
 //
-// Copyright 2011 - 2014, Chris McKenzie
+// Copyright 2011 - 2015, Chris McKenzie
 // Dual licensed under the MIT or GPL Version 2 licenses.
 //
 // Looking under the hood are you? What a fun place to be.
@@ -350,7 +350,7 @@
           set = remaining;
         } else {
 
-          // Wanting to do DB.find(['field1', 'field2'], condition) 
+          // Wanting to do bracket.find(['field1', 'field2'], condition) 
           // seems convenient enough.
           if(
             !_.isObj(filter[0]) &&
@@ -396,8 +396,8 @@
               _fn = _key.slice(1);
 
             // see if the routine asked for exists
-            if(_fn in DB) {
-              value = DB[_fn](value[_key]);
+            if(_fn in bracket) {
+              value = bracket[_fn](value[_key]);
             } else {
               throw new Error(_fn + " is an unknown function");
             }
@@ -748,19 +748,19 @@
   }
 
   function chain (list) {
-    return (new DB()).concat(list);
+    return (new bracket()).concat(list);
   }
 
   // --- START OF AN INSTANCE ----
   //
-  // This is the start of a DB instance.
+  // This is the start of a bracket instance.
   // All the instance local functions
   // and variables ought to go here. Things
   // that would have been considered "static"
   // in a language such as Java or C++ should
   // go above!!!!
   //
-  var DB = self.DB = function(arg0, arg1){
+  var bracket = self.bracket = function(arg0, arg1){
     this.constraints = {addIf:[]};
     this.syncList = [];
     this.syncLock = false;
@@ -780,18 +780,18 @@
     if (arguments.length == 1) {
       if(_.isArr(arg0)) { this.insert(arg0) }
       else if(_.isFun(arg0)) { this.insert(arg0()) }
-      else if(_.isStr(arg0)) { return DB.apply(this, arguments) }
+      else if(_.isStr(arg0)) { return bracket.apply(this, arguments) }
       else if(_.isObj(arg0)) { this.insert(arg0) }
     } else if(arguments.length > 1) {
       this.insert(slice.call(arguments));
     }
 
     // Register this instance.
-    DB.all.push(ret);
+    bracket.all.push(ret);
 
   }
 
-  DB.prototype.sync = function() {
+  bracket.prototype.sync = function() {
     if(!this.syncLock) {
       this.syncLock = true;
       each(this.syncList, function(which) { which.call(ret, this); });
@@ -801,9 +801,9 @@
 
   // See the interesting 1-person discussion with myself here:
   // http://stackoverflow.com/questions/30741140/can-javascript-do-polymorphic-duck-typing-for-arrays-see-details
-  DB.prototype.concat = function() {
+  bracket.prototype.concat = function() {
     // We start with a new instance of our own object, myArray
-    var ret = new DB();
+    var ret = new bracket();
 
     // utilize the in-place `splice` to keep the type as `myArray`
     ret.splice.apply(
@@ -828,7 +828,7 @@
     return ret;
   }
 
-  DB.prototype.list2data = function (list) {
+  bracket.prototype.list2data = function (list) {
     var ret = [];
 
     for(var ix = 0, len = list.length; ix < len; ix++) {
@@ -838,10 +838,10 @@
     return ret;
   }
 
-  DB.prototype = Object.create(Array.prototype);
-  DB.prototype.constructor = DB;
+  bracket.prototype = Object.create(Array.prototype);
+  bracket.prototype.constructor = bracket;
 
-  DB.prototype.transaction = {
+  bracket.prototype.transaction = {
     start: function() {
       this.syncLock = true;
     },
@@ -857,7 +857,7 @@
   // this is essentially a schema-less document store there could
   // be things missing.
   //
-  DB.prototype.schema = function() {
+  bracket.prototype.schema = function() {
     // rand() is slow on android (2013-01) and the entropy 
     // can have some issues so we don't try doing that.
     // The interwebs claims that every 10th sampling is a good
@@ -886,16 +886,16 @@
   // 
   // This is to constrain the database.  Currently you can enforce a unique
   // key value through something like `db.constrain('unique', 'somekey')`.
-  // You should probably run this early, as unlike in RDBMSs, it doesn't do
+  // You should probably run this early, as unlike in RbracketMSs, it doesn't do
   // a historical check nor does it create a optimized hash to index by
   // this key ... it just does a lookup every time as of now.
   //
-  DB.prototype.constrain = function() { 
+  bracket.prototype.constrain = function() { 
     extend(this.constraints, kvarg(arguments)); 
   }
     
   // Adds if and only if a function matches a constraint
-  DB.prototype.addIf = function( lambda ) {
+  bracket.prototype.addIf = function( lambda ) {
     if(lambda) {
       this.constraints.addIf.push(lambda);
     }
@@ -904,7 +904,7 @@
 
   // beforeAdd allows you to mutate data prior to insertion.
   // It's really an addIf that returns true
-  DB.prototype.beforeAdd = function( lambda ) {
+  bracket.prototype.beforeAdd = function( lambda ) {
     return this.addIf(
       lambda ? 
           function() { lambda.apply(0, arguments); return true; } 
@@ -912,7 +912,7 @@
       )
   }
 
-  DB.prototype.unset = function(key) {
+  bracket.prototype.unset = function(key) {
     if(_.isArr(key)) {
       return each(key, arguments.callee);
     } else {
@@ -927,33 +927,33 @@
     }
   }
 
-  DB.prototype.each = DB.prototype.map = eachRun;
-  DB.prototype.not = not;
+  bracket.prototype.each = bracket.prototype.map = eachRun;
+  bracket.prototype.not = not;
 
   // This is a shorthand to find for when you are only expecting one result.
   // A boolean false is returned if nothing is found
-  DB.prototype.findFirst = function(){
+  bracket.prototype.findFirst = function(){
     var res = ret.find.apply(this, arguments);
     return res.length ? res[0] : false;
   }
 
-  DB.prototype.has = has;
+  bracket.prototype.has = has;
 
   // hasKey is to get records that have keys defined
-  DB.prototype.hasKey = function() {
+  bracket.prototype.hasKey = function() {
     var inner = outer.find(missing(slice.call(arguments)));
 
     return this.invert(inner, this);
   }
 
-  DB.prototype.isin = isin;
-  DB.prototype.like = like;
-  DB.prototype.invert = function(list, second) { 
+  bracket.prototype.isin = isin;
+  bracket.prototype.like = like;
+  bracket.prototype.invert = function(list, second) { 
     return chain(setdiff(second || this, list || this)); 
   }
 
   // Missing is to get records that have keys not defined
-  DB.prototype.missing = function() { 
+  bracket.prototype.missing = function() { 
     var base = missing(slice.call(arguments));
     return this.find(base);
   }
@@ -965,7 +965,7 @@
   // Note that this is different from the internal
   // definition of the sync function, which does the
   // actual synchronization
-  DB.prototype.sync = function(callback) { 
+  bracket.prototype.sync = function(callback) { 
     if(callback) {
       this.syncList.push(callback);
     } else { 
@@ -974,7 +974,7 @@
     return this;
   }
 
-  DB.prototype.template = {
+  bracket.prototype.template = {
     create: function(opt) { _template = opt; },
     update: function(opt) { extend(_template || {}, opt); },
     get: function() { return _template },
@@ -991,7 +991,7 @@
   //   var result = db.find(constraint);
   //   result.update({a: b});
   //
-  DB.prototype.update = function() {
+  bracket.prototype.update = function() {
     var list = update.apply( this, arguments) ;
     sync();
     return chain (list);
@@ -1004,7 +1004,7 @@
   // return them as a hash where the keys are the field values and the results are an array
   // of the rows that match that value.
   //
-  DB.prototype.group = function(field) {
+  bracket.prototype.group = function(field) {
     var groupMap = {};
 
     each(this, function(which) {
@@ -1030,7 +1030,7 @@
   // This is like group above but it just maps as a K/V tuple, with 
   // the duplication policy of the first match being preferred.
   //
-  DB.prototype.keyBy = function(field) {
+  bracket.prototype.keyBy = function(field) {
     var groupResult = ret.group.apply(this, arguments);
 
     each(groupResult, function(key, value) {
@@ -1043,7 +1043,7 @@
   //
   // indexBy is just a sort without a chaining of the args
   //
-  DB.prototype.indexBy = function () {
+  bracket.prototype.indexBy = function () {
     // set the order output to the raw
     this.splice.apply(this, [0,0].concat(this.order.apply(this, arguments)));
   }
@@ -1056,7 +1056,7 @@
   //
   // You can also supply a second parameter of a case insensitive "asc" and "desc" like in SQL.
   //
-  DB.prototype.order = DB.prototype.sort = DB.prototype.orderBy = function (arg0, arg1) {
+  bracket.prototype.order = bracket.prototype.sort = bracket.prototype.orderBy = function (arg0, arg1) {
     var 
       key, 
       fnSort,
@@ -1095,7 +1095,7 @@
     return chain(this.sort(fnSort));
   }
 
-  DB.prototype.where = DB.prototype.find = function() {
+  bracket.prototype.where = bracket.prototype.find = function() {
     var args = slice.call(arguments || []);
 
     // Addresses test 23 (Finding: Find all elements cascarded, 3 times)
@@ -1112,7 +1112,7 @@
   // lazyViews are a variation of views that have to be explicitly rebuilt
   // on demand with ()
   //
-  DB.prototype.lazyView = function(field, type) {
+  bracket.prototype.lazyView = function(field, type) {
     // keep track
     var 
       myix = {del: _ix.del, ins: _ix.ins},
@@ -1163,7 +1163,7 @@
   // Views are an expensive synchronization macro that return 
   // an object that can be indexed in order to get into the data.
   //
-  DB.prototype.view = function(field, type) {
+  bracket.prototype.view = function(field, type) {
     var fn = ret.lazyView(field, type);
     ret.sync(fn);
     return fn;
@@ -1179,7 +1179,7 @@
   // You can also do db.select(' * ') to retrieve all fields, although the 
   // key values of these fields aren't currently being returned.
   //
-  DB.prototype.select = function(field) {
+  bracket.prototype.select = function(field) {
     var 
       filter = this,
       fieldCount,
@@ -1223,7 +1223,7 @@
   // This is to insert data into the database.  You can either insert
   // data as a list of arguments, as an array, or as a single object.
   //
-  DB.prototype.insert = function(param) {
+  bracket.prototype.insert = function(param) {
     var 
       ix,
       unique = this.constraints.unique,
@@ -1346,7 +1346,7 @@
   // The quickest way to do an insert. 
   // This checks for absolutely nothing.
   //
-  DB.prototype.flash = function(list) {
+  bracket.prototype.flash = function(list) {
     this.splice.apply(this, [0,0].concat(list));
   }
 
@@ -1356,7 +1356,7 @@
   // This will remove the entries from the database but also return them if
   // you want to manipulate them.  You can invoke this with a constraint.
   //
-  DB.prototype.remove = function(arg0, arg1) {
+  bracket.prototype.remove = function(arg0, arg1) {
     var 
       isDirty = false,
       end, start,
@@ -1409,7 +1409,7 @@
     return chain(save.reverse());
   }
 
-  extend(DB, {
+  extend(bracket, {
     all: [],
     find: find,
     diff: setdiff,
@@ -1425,7 +1425,7 @@
     // like expr but for local functions
     local: function(){
       return '(function(){ return ' + 
-        DB.apply(this, arguments).toString() + 
+        bracket.apply(this, arguments).toString() + 
       ';})()';
     },
 
@@ -1481,7 +1481,7 @@
     // functional programming.
     //
     reduceRight: function(memo, callback) {
-      var callback = DB.reduceLeft(memo, callback);
+      var callback = bracket.reduceLeft(memo, callback);
 
       return function(list) {
         return callback(list.reverse());
