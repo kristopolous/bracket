@@ -1133,7 +1133,7 @@ var bracket = (function(){
     lazyView: function(field, type) {
       // keep track
       var 
-        myix = {del: _ix.del, ins: _ix.ins},
+        myix = {del: this._ix.del, ins: this._ix.ins},
         keyer;
       
       if(field.search(/[()]/) == -1) {
@@ -1150,13 +1150,13 @@ var bracket = (function(){
         if(whence) {
           // if we only care about updating our views
           // on a new delete, then we check our atomic
-          if(whence == 'del' && myix.del == _ix.del) {
+          if(whence == 'del' && myix.del == this._ix.del) {
             return;
-          } else if(whence == 'ins' && myix.ins == _ix.ins) {
+          } else if(whence == 'ins' && myix.ins == this._ix.ins) {
             return;
           }
         }
-        myix = {del: _ix.del, ins: _ix.ins};
+        myix = {del: this._ix.del, ins: this._ix.ins};
 
         var ref = {};
 
@@ -1418,7 +1418,7 @@ var bracket = (function(){
       if(isDirty) {
         // If we've spliced, then we sync and update our
         // atomic delete counter
-        _ix.del++;
+        this._ix.del++;
         this.sync();
       }
       return chain(save.reverse());
