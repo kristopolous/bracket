@@ -1283,7 +1283,7 @@ var bracket = (function(){
 
           // We create a lazyView 
           if(!mthis._g[key]) {
-            mthis._g[key] = this.lazyView(unique);
+            mthis._g[key] = mthis.lazyView(unique);
           } else {
             // Only update if a delete has happened
             mthis._g[key]('del');
@@ -1352,10 +1352,7 @@ var bracket = (function(){
 
       this.sync();
 
-      return extend(
-        chain(this.list2data(ixList)),
-        {existing: existing}
-      );
+      return this;
     },
 
     // 
