@@ -808,14 +808,6 @@ var bracket = (function(){
 
   extend(bracket.prototype, {
 
-    sync: function() {
-      if(!this.syncLock) {
-        this.syncLock = true;
-        each(this.syncList, function(which) { which.call(ret, this); });
-        this.syncLock = false;
-      }
-    },
-
     // See the interesting 1-person discussion with myself here:
     // http://stackoverflow.com/questions/30741140/can-javascript-do-polymorphic-duck-typing-for-arrays-see-details
     concat: function() {
@@ -983,7 +975,11 @@ var bracket = (function(){
       if(callback) {
         this.syncList.push(callback);
       } else { 
-        this.sync();
+        if(!this.syncLock) {
+          this.syncLock = true;
+          each(this.syncList, function(which) { which.call(ret, this); });
+          this.syncLock = false;
+        }
       }
       return this;
     },
@@ -1354,10 +1350,10 @@ var bracket = (function(){
         ixList.push(ix);
       });
 
-      sync();
+      this.sync();
 
       return extend(
-        chain(list2data(ixList)),
+        chain(this.list2data(ixList)),
         {existing: existing}
       );
     },
