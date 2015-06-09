@@ -1105,9 +1105,6 @@ var bracket = (function(){
       return chain(this.sort(fnSort));
     },
 
-    sort: bracket.prototype.order,
-    orderBy: bracket.prototype.sort,
-
     where: function() {
       var args = slice.call(arguments || []);
 
@@ -1118,8 +1115,6 @@ var bracket = (function(){
 
       return chain( find.apply(this, args) );
     },
-
-    find: bracket.prototype.where,
 
     //
     // lazyView
@@ -1421,6 +1416,13 @@ var bracket = (function(){
       }
       return chain(save.reverse());
     }
+  });
+
+  // aliases have to be assigned in a second pass.
+  extend(bracket.prototype, {
+    sort: bracket.prototype.order,
+    orderBy: bracket.prototype.sort,
+    find: bracket.prototype.where
   });
 
   extend(bracket, {
