@@ -979,7 +979,10 @@ var bracket = (function(){
       } else { 
         if(!this.syncLock) {
           this.syncLock = true;
-          each(this.syncList, function(which) { which.call(ret, this); });
+          var mthis = this;
+          each(this.syncList, function(which) { 
+            which.call(mthis, mthis); 
+          });
           this.syncLock = false;
         }
       }
@@ -1005,7 +1008,7 @@ var bracket = (function(){
     //
     update: function() {
       var list = update.apply( this, arguments) ;
-      sync();
+      this.sync();
       return chain (list);
     },
 
@@ -1177,7 +1180,7 @@ var bracket = (function(){
     //
     view: function(field, type) {
       var fn = ret.lazyView(field, type);
-      ret.sync(fn);
+      this.sync(fn);
       return fn;
     },
 
@@ -1379,9 +1382,8 @@ var bracket = (function(){
         save = ret.find.apply(this, arguments);
         if(save.length) {
           this.splice.apply(this, [0, this.length].concat(this.invert(save)));
-          console.log(raw);
           this._ix.del++;
-          sync();
+          this.sync();
         }
         return chain(save.reverse());
       } 
@@ -1414,7 +1416,7 @@ var bracket = (function(){
         // If we've spliced, then we sync and update our
         // atomic delete counter
         _ix.del++;
-        sync();
+        this.sync();
       }
       return chain(save.reverse());
     }
