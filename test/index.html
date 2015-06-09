@@ -121,26 +121,27 @@ module('copy');
   test("Trivial copy", function(){
     var 
       db = bracket({a: 1}),
-      db1 = bracket(bracket.copy(db.find()));
+      db1 = bracket(bracket.copy(db));
 
-    db1.find()[0].a = 100;
-    equal(db.find()[0].a, 1, "Copy modifies independent data");
-    equal(db1.find()[0].a, 100, "Copy modifies independent data");
+    db1[0].a = 100;
+    equal(db[0].a, 1, "Copy modifies independent data");
+    equal(db1[0].a, 100, "Copy modifies independent data");
 
   });
 
   test("Multi index copy", function(){
     var 
       db = bracket([{a: 1}, {a: 2}, {a: 3}]),
-      db1 = bracket(bracket.copy(db.find()));
+      db1 = bracket(bracket.copy(db));
 
-    db1.find()[1].a = 100;
-    equal(db.find()[1].a, 2, "Copy modifies independent data");
-    equal(db1.find()[1].a, 100, "Copy modifies independent data");
+    console.log(db1);
+    db1[1].a = 100;
+    equal(db[1].a, 2, "Copy modifies independent data");
+    equal(db1[1].a, 100, "Copy modifies independent data");
 
-    db1.find()[0].a = 103;
-    equal(db.find()[0].a, 1, "Copy modifies independent data");
-    equal(db1.find()[0].a, 103, "Copy modifies independent data");
+    db1[0].a = 103;
+    equal(db[0].a, 1, "Copy modifies independent data");
+    equal(db1[0].a, 103, "Copy modifies independent data");
 
   });
 module('transaction');

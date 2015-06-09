@@ -57,7 +57,7 @@ var bracket = (function(){
       // } end underscore.js
       // from jquery 1.5.2's type
       isObj: function( obj ){
-        if(_.isFun(obj) || _.isStr(obj) || _.isNum(obj) || _.isArr(obj)) {
+        if(_.isBool(obj) || _.isFun(obj) || _.isStr(obj) || _.isNum(obj) || _.isArr(obj)) {
           return false;
         }
         return obj == null ? 
@@ -223,7 +223,9 @@ var bracket = (function(){
 
   function copy(obj) {
     // we need to call slice for array-like objects, such as the dom
-    return 'length' in obj ? slice.call(obj) : values(obj);
+    return _.isObj(obj) ? (
+      'length' in obj ? slice.call(obj) : values(obj)
+    ) : obj;
   }
 
   // These function accept index lists.
@@ -1447,7 +1449,7 @@ var bracket = (function(){
     // expensive basic full depth copying.
     copy: function(data) {
       return map(data, function(what) {
-        return extend({}, what);
+        return copy(what);
       });
     },
 
