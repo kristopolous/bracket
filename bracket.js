@@ -804,17 +804,19 @@ var bracket = (function(){
 
   }
 
-  bracket.prototype.sync = function() {
-    if(!this.syncLock) {
-      this.syncLock = true;
-      each(this.syncList, function(which) { which.call(ret, this); });
-      this.syncLock = false;
-    }
-  }
+  extend(bracket.prototype, {
+
+    sync: function() {
+      if(!this.syncLock) {
+        this.syncLock = true;
+        each(this.syncList, function(which) { which.call(ret, this); });
+        this.syncLock = false;
+      }
+    },
 
   // See the interesting 1-person discussion with myself here:
   // http://stackoverflow.com/questions/30741140/can-javascript-do-polymorphic-duck-typing-for-arrays-see-details
-  bracket.prototype.concat = function() {
+concat: function() {
     // We start with a new instance of our own object, myArray
     var ret = new bracket();
 
@@ -841,7 +843,7 @@ var bracket = (function(){
     return ret;
   }
 
-  bracket.prototype.list2data = function (list) {
+list2data: function (list) {
     var ret = [];
 
     for(var ix = 0, len = list.length; ix < len; ix++) {
@@ -851,10 +853,10 @@ var bracket = (function(){
     return ret;
   }
 
-  bracket.prototype = Object.create(Array.prototype);
-  bracket.prototype.constructor = bracket;
+= Object.create(Array.prototype);
+constructor = bracket;
 
-  bracket.prototype.transaction = {
+transaction = {
     start: function() {
       this.syncLock = true;
     },
@@ -870,7 +872,7 @@ var bracket = (function(){
   // this is essentially a schema-less document store there could
   // be things missing.
   //
-  bracket.prototype.schema = function() {
+  schema: function() {
     // rand() is slow on android (2013-01) and the entropy 
     // can have some issues so we don't try doing that.
     // The interwebs claims that every 10th sampling is a good
@@ -894,7 +896,7 @@ var bracket = (function(){
     }
 
     return keys(agg);
-  }
+  },
 
   // 
   // This is to constrain the database.  Currently you can enforce a unique
@@ -903,29 +905,29 @@ var bracket = (function(){
   // a historical check nor does it create a optimized hash to index by
   // this key ... it just does a lookup every time as of now.
   //
-  bracket.prototype.constrain = function() { 
+  constrain: function() { 
     extend(this.constraints, kvarg(arguments)); 
-  }
+  },
     
   // Adds if and only if a function matches a constraint
-  bracket.prototype.addIf = function( lambda ) {
+  addIf: function( lambda ) {
     if(lambda) {
       this.constraints.addIf.push(lambda);
     }
     return this.constraints.addIf;
-  }
+  },
 
   // beforeAdd allows you to mutate data prior to insertion.
   // It's really an addIf that returns true
-  bracket.prototype.beforeAdd = function( lambda ) {
+  beforeAdd: function( lambda ) {
     return this.addIf(
       lambda ? 
           function() { lambda.apply(0, arguments); return true; } 
         : false
       )
-  }
+  },
 
-  bracket.prototype.unset = function(key) {
+  unset: function(key) {
     if(_.isArr(key)) {
       return each(key, arguments.callee);
     } else {
@@ -937,38 +939,39 @@ var bracket = (function(){
       this.sync();
       return this;
     }
-  }
+  },
 
-  bracket.prototype.each = bracket.prototype.map = eachRun;
-  bracket.prototype.not = not;
+  each: eachRun,
+  map: eachRun,
+  not: not,
 
   // This is a shorthand to find for when you are only expecting one result.
   // A boolean false is returned if nothing is found
-  bracket.prototype.findFirst = function(){
+  findFirst: function(){
     var res = ret.find.apply(this, arguments);
     return res.length ? res[0] : false;
-  }
+  },
 
-  bracket.prototype.has = has;
+  has: has,
 
   // hasKey is to get records that have keys defined
-  bracket.prototype.hasKey = function() {
+  hasKey: function() {
     var inner = this.find(missing(slice.call(arguments)));
 
     return this.invert(inner, this);
-  }
+  },
 
-  bracket.prototype.isin = isin;
-  bracket.prototype.like = like;
-  bracket.prototype.invert = function(list, second) { 
+  isin: isin,
+  like: like,
+  invert: function(list, second) { 
     return chain(setdiff(second || this, list || this)); 
-  }
+  },
 
   // Missing is to get records that have keys not defined
-  bracket.prototype.missing = function() { 
+  missing: function() { 
     var base = missing(slice.call(arguments));
     return this.find(base);
-  }
+  },
 
   // The callbacks in this list are called
   // every time the database changes with
@@ -977,7 +980,7 @@ var bracket = (function(){
   // Note that this is different from the internal
   // definition of the sync function, which does the
   // actual synchronization
-  bracket.prototype.sync = function(callback) { 
+  sync: function(callback) { 
     if(callback) {
       this.syncList.push(callback);
     } else { 
@@ -986,7 +989,7 @@ var bracket = (function(){
     return this;
   }
 
-  bracket.prototype.template = {
+  template: {
     create: function(opt) { _template = opt; },
     update: function(opt) { extend(_template || {}, opt); },
     get: function() { return _template },
@@ -1003,7 +1006,7 @@ var bracket = (function(){
   //   var result = db.find(constraint);
   //   result.update({a: b});
   //
-  bracket.prototype.update = function() {
+  update: function() {
     var list = update.apply( this, arguments) ;
     sync();
     return chain (list);
@@ -1016,7 +1019,7 @@ var bracket = (function(){
   // return them as a hash where the keys are the field values and the results are an array
   // of the rows that match that value.
   //
-  bracket.prototype.group = function(field) {
+  group: function(field) {
     var groupMap = {};
 
     each(this, function(which) {
@@ -1042,7 +1045,7 @@ var bracket = (function(){
   // This is like group above but it just maps as a K/V tuple, with 
   // the duplication policy of the first match being preferred.
   //
-  bracket.prototype.keyBy = function(field) {
+  keyBy: function(field) {
     var groupResult = ret.group.apply(this, arguments);
 
     each(groupResult, function(key, value) {
@@ -1055,7 +1058,7 @@ var bracket = (function(){
   //
   // indexBy is just a sort without a chaining of the args
   //
-  bracket.prototype.indexBy = function () {
+  indexBy: function () {
     // set the order output to the raw
     this.splice.apply(this, [0,0].concat(this.order.apply(this, arguments)));
   }
@@ -1068,7 +1071,7 @@ var bracket = (function(){
   //
   // You can also supply a second parameter of a case insensitive "asc" and "desc" like in SQL.
   //
-  bracket.prototype.order = bracket.prototype.sort = bracket.prototype.orderBy = function (arg0, arg1) {
+  order: function (arg0, arg1) {
     var 
       key, 
       fnSort,
@@ -1105,9 +1108,11 @@ var bracket = (function(){
       eval('fnSort=function(a,b){return order(a.' + key + ', b.' + key + ')}');
     }
     return chain(this.sort(fnSort));
-  }
+  },
+  sort: bracket.prototype.order,
+  orderBy: bracket.prototype.sort,
 
-  bracket.prototype.where = bracket.prototype.find = function() {
+  where: function() {
     var args = slice.call(arguments || []);
 
     // Addresses test 23 (Finding: Find all elements cascarded, 3 times)
@@ -1117,6 +1122,7 @@ var bracket = (function(){
 
     return chain( find.apply(this, args) );
   }
+  find: bracket.prototype.where,
 
   //
   // lazyView
@@ -1124,7 +1130,7 @@ var bracket = (function(){
   // lazyViews are a variation of views that have to be explicitly rebuilt
   // on demand with ()
   //
-  bracket.prototype.lazyView = function(field, type) {
+  lazyView: function(field, type) {
     // keep track
     var 
       myix = {del: _ix.del, ins: _ix.ins},
@@ -1135,9 +1141,9 @@ var bracket = (function(){
         field = '.' + field;
       }
 
-      eval( "keyer = function(r,ref){try{ref[rX] = update[rX] = r;} catch(x){}}".replace(/X/g, field));
+      eval( "keyer: function(r,ref){try{ref[rX] = update[rX] = r;} catch(x){}}".replace(/X/g, field));
     } else {
-      eval( "keyer = function(r,ref){with(r) { var val = X };try{ref[val] = update[val] = r;} catch(x){}}".replace(/X/g, field));
+      eval( "keyer: function(r,ref){with(r) { var val = X };try{ref[val] = update[val] = r;} catch(x){}}".replace(/X/g, field));
     }
 
     function update(whence) {
@@ -1175,11 +1181,11 @@ var bracket = (function(){
   // Views are an expensive synchronization macro that return 
   // an object that can be indexed in order to get into the data.
   //
-  bracket.prototype.view = function(field, type) {
+  view: function(field, type) {
     var fn = ret.lazyView(field, type);
     ret.sync(fn);
     return fn;
-  }
+  },
 
   //
   // select
@@ -1191,7 +1197,7 @@ var bracket = (function(){
   // You can also do db.select(' * ') to retrieve all fields, although the 
   // key values of these fields aren't currently being returned.
   //
-  bracket.prototype.select = function(field) {
+  select: function(field) {
     var 
       filter = this,
       fieldCount,
@@ -1227,7 +1233,7 @@ var bracket = (function(){
     });
     
     return chain(values(resultList));
-  }
+  },
 
   // 
   // insert
@@ -1235,7 +1241,7 @@ var bracket = (function(){
   // This is to insert data into the database.  You can either insert
   // data as a list of arguments, as an array, or as a single object.
   //
-  bracket.prototype.insert = function(param) {
+  insert: function(param) {
     var 
       ix,
       unique = this.constraints.unique,
@@ -1352,15 +1358,15 @@ var bracket = (function(){
       chain(list2data(ixList)),
       {existing: existing}
     );
-  }
+  },
 
   // 
   // The quickest way to do an insert. 
   // This checks for absolutely nothing.
   //
-  bracket.prototype.flash = function(list) {
+  flash: function(list) {
     this.splice.apply(this, [0,0].concat(list));
-  }
+  },
 
   //
   // remove
@@ -1368,7 +1374,7 @@ var bracket = (function(){
   // This will remove the entries from the database but also return them if
   // you want to manipulate them.  You can invoke this with a constraint.
   //
-  bracket.prototype.remove = function(arg0, arg1) {
+remove: function(arg0, arg1) {
     var 
       isDirty = false,
       end, start,
