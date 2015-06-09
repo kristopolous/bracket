@@ -1,14 +1,14 @@
 <!doctype html>
 <html>
 <head>
-  <title>db.js test suite</title>
+  <title>bracket.js test suite</title>
   <link rel=stylesheet href=qunit.css>
   <script src="jquery.js"></script>
-  <script src=../db.js > </script>
+  <script src=../bracket.js > </script>
   <script src=qunit.js > </script>
 </head>
 <body>
-  <h1 id=qunit-header>db.js test suite</h1>
+  <h1 id=qunit-header>bracket.js test suite</h1>
   <h2 id="qunit-banner"></h2>
   <div id="qunit-testrunner-toolbar"></div>
   <h2 id="qunit-userAgent"></h2>
@@ -20,89 +20,89 @@ $(function(){
 module("Initialization");
 
   test("No arguments", function(){
-    var db = DB();
-    equal(db.__raw__.length, 0, "The database has one element");
+    var db = bracket();
+    equal(db.length, 0, "The database has one element");
   });
 
   test("One KV arg", function(){
-    var db = DB({key: 'value'});
-    equal(db.__raw__.length, 1, "The database has one element");
-    equal(db.__raw__[0].key, "value", "The first element has a key and a value");
+    var db = bracket({key: 'value'});
+    equal(db.length, 1, "The database has one element");
+    equal(db[0].key, "value", "The first element has a key and a value");
   });
 
   test("Multiple KV arg", function(){
-    var db = DB(
+    var db = bracket(
       { key1: 0 }, 
       { key2: 'value2' }, 
       { key1: 'value3' }
     );
 
-    equal(db.__raw__.length, 3, "Three items were inserted");
-    equal(db.__raw__[0].key1, 0, "The first has an integer value 0");
-    equal(db.__raw__[1].key2, "value2", "The second has a string value 'value2'");
-    equal(db.__raw__[2].key1, "value3", "the third has a string value 'value3'");
+    equal(db.length, 3, "Three items were inserted");
+    equal(db[0].key1, 0, "The first has an integer value 0");
+    equal(db[1].key2, "value2", "The second has a string value 'value2'");
+    equal(db[2].key1, "value3", "the third has a string value 'value3'");
   });
 
   test("Multiple KV arg as array", function(){
-    var db = DB(
+    var db = bracket(
       { key1: 0 }, 
       { key2: 'value2' }, 
       { key1: 'value3' }
     );
 
-    equal(db.__raw__.length, 3, "Three items were inserted");
-    equal(db.__raw__[0].key1, 0, "The first has an integer value 0");
-    equal(db.__raw__[1].key2, "value2", "The second has a string value 'value2'");
-    equal(db.__raw__[2].key1, "value3", "the third has a string value 'value3'");
+    equal(db.length, 3, "Three items were inserted");
+    equal(db[0].key1, 0, "The first has an integer value 0");
+    equal(db[1].key2, "value2", "The second has a string value 'value2'");
+    equal(db[2].key1, "value3", "the third has a string value 'value3'");
   });
 
 module("Insertion");
   test("One KV arg", function(){
-    var db = DB();
+    var db = bracket();
     db.insert({key: 'value'});
-    equal(db.__raw__.length, 1, "The database has one element");
-    equal(db.__raw__[0].key, "value", "The first element has a key and a value");
+    equal(db.length, 1, "The database has one element");
+    equal(db[0].key, "value", "The first element has a key and a value");
   });
 
   test("Multiple KV arg", function(){
-    var db = DB();
+    var db = bracket();
     db.insert(
       { key1: 0 }, 
       { key2: 'value2' }, 
       { key1: 'value3' }
     );
 
-    equal(db.__raw__.length, 3, "Three items were inserted");
-    equal(db.__raw__[0].key1, 0, "The first has an integer value 0");
-    equal(db.__raw__[1].key2, "value2", "The second has a string value 'value2'");
-    equal(db.__raw__[2].key1, "value3", "the third has a string value 'value3'");
+    equal(db.length, 3, "Three items were inserted");
+    equal(db[0].key1, 0, "The first has an integer value 0");
+    equal(db[1].key2, "value2", "The second has a string value 'value2'");
+    equal(db[2].key1, "value3", "the third has a string value 'value3'");
   });
 
   test("Multiple KV arg as array", function(){
-    var db = DB();
+    var db = bracket();
     db.insert([{key1: 0}, {key2: 'value2'}, {key1: 'value3'}]);
-    equal(db.__raw__.length, 3, "Three items were inserted");
-    equal(db.__raw__[0].key1, 0, "The first has an integer value 0");
-    equal(db.__raw__[1].key2, "value2", "The second has a string value 'value2'");
-    equal(db.__raw__[2].key1, "value3", "the third has a string value 'value3'");
+    equal(db.length, 3, "Three items were inserted");
+    equal(db[0].key1, 0, "The first has an integer value 0");
+    equal(db[1].key2, "value2", "The second has a string value 'value2'");
+    equal(db[2].key1, "value3", "the third has a string value 'value3'");
   });
 
   test("Multiple KV arg as chain", function(){
-    var db = DB();
+    var db = bracket();
     db
       .insert({key1: 0})
       .insert({key2: 'value2'})
       .insert({key1: 'value3'});
 
-    equal(db.__raw__.length, 3, "Three items were inserted");
-    equal(db.__raw__[0].key1, 0, "The first has an integer value 0");
-    equal(db.__raw__[1].key2, "value2", "The second has a string value 'value2'");
-    equal(db.__raw__[2].key1, "value3", "the third has a string value 'value3'");
+    equal(db.length, 3, "Three items were inserted");
+    equal(db[0].key1, 0, "The first has an integer value 0");
+    equal(db[1].key2, "value2", "The second has a string value 'value2'");
+    equal(db[2].key1, "value3", "the third has a string value 'value3'");
   });
 
   test("Data from the DOM", function(){
     expect(1);
-    var db = DB();
+    var db = bracket();
 
     db.insert(document.getElementsByTagName('*'));
     equal(true, true, "Got past");
@@ -110,8 +110,8 @@ module("Insertion");
 
   test("Data from the document object", function(){
     expect(1);
-    var db = DB(
-      DB.values(document)
+    var db = bracket(
+      bracket.values(document)
     );
 
     equal(true, true, "Got past");
@@ -120,8 +120,8 @@ module("Insertion");
 module('copy');
   test("Trivial copy", function(){
     var 
-      db = DB({a: 1}),
-      db1 = DB(DB.copy(db.find()));
+      db = bracket({a: 1}),
+      db1 = bracket(bracket.copy(db.find()));
 
     db1.find()[0].a = 100;
     equal(db.find()[0].a, 1, "Copy modifies independent data");
@@ -131,8 +131,8 @@ module('copy');
 
   test("Multi index copy", function(){
     var 
-      db = DB([{a: 1}, {a: 2}, {a: 3}]),
-      db1 = DB(DB.copy(db.find()));
+      db = bracket([{a: 1}, {a: 2}, {a: 3}]),
+      db1 = bracket(bracket.copy(db.find()));
 
     db1.find()[1].a = 100;
     equal(db.find()[1].a, 2, "Copy modifies independent data");
@@ -147,7 +147,7 @@ module('transaction');
   test("Start a transaction, do 10 operations, end it", function(){
     expect(1);
     var 
-      db = DB(),
+      db = bracket(),
       counter = 0;
 
     db.sync(function(){
@@ -164,7 +164,7 @@ module('transaction');
 
   test("Start a transaction, do 10 operations, end it, do 10 more", function(){
     expect(11);
-    var db = DB();
+    var db = bracket();
 
     db.sync(function(){
       equal(true, true, "counting number of times run");
@@ -183,7 +183,7 @@ module('transaction');
 
 module('constrain');
   test("Create a table, constrain by key - check return", function(){
-    var db = DB();
+    var db = bracket();
 
     db.constrain('unique', 'key1');
 
@@ -193,9 +193,9 @@ module('constrain');
       { key1: 0, a:2 }
     );
 
-    equal(db.__raw__.length, 2, "Two items were inserted");
-    equal(db.__raw__[0].key1, 0, "The first has an integer value 0");
-    equal(db.__raw__[1].key2, "value2", "The second has a string value 'value2'");
+    equal(db.length, 2, "Two items were inserted");
+    equal(db[0].key1, 0, "The first has an integer value 0");
+    equal(db[1].key2, "value2", "The second has a string value 'value2'");
     /*
     equal(val.length, 3, "Three things were returned");
     console.log("vv", val);
@@ -204,7 +204,7 @@ module('constrain');
   });
 
   test("Create a table, constrain by key - remove", function(){
-    var db = DB();
+    var db = bracket();
 
     db.constrain('unique', 'key1');
 
@@ -227,7 +227,7 @@ module('constrain');
   });
 
   test("Create a table, constrain by key - two step", function(){
-    var db = DB();
+    var db = bracket();
 
     db.constrain('unique', 'key1');
 
@@ -238,14 +238,14 @@ module('constrain');
 
     db.insert({key1: 0, a: 2});
 
-    equal(db.__raw__.length, 2, "Two items were inserted");
-    equal(db.__raw__[0].a, 0, "The first has an integer value 0");
-    equal(db.__raw__[1].key2, "value2", "The second has a string value 'value2'");
+    equal(db.length, 2, "Two items were inserted");
+    equal(db[0].a, 0, "The first has an integer value 0");
+    equal(db[1].key2, "value2", "The second has a string value 'value2'");
   });
 
 module('AddIf');
   test("Only add if the key == 2", function(){
-    var db = DB();
+    var db = bracket();
     expect(6);
 
     db.addIf(function(what) {
@@ -259,13 +259,13 @@ module('AddIf');
       { key: 3 }
     );
 
-    equal(db.__raw__.length, 1, "There's only one item in the database");
-    equal(db.__raw__[0].key, 2, "This item has the right value");
+    equal(db.length, 1, "There's only one item in the database");
+    equal(db[0].key, 2, "This item has the right value");
     equal(db.addIf().length, 1, "There is one constraint");
   });
 
   test("Only add if the key == 2 and value == 3; two functions", function(){
-    var db = DB();
+    var db = bracket();
     expect(9);
 
     db.addIf(function(what) {
@@ -284,13 +284,13 @@ module('AddIf');
       { key: 2 , value: 2}
     );
 
-    equal(db.__raw__.length, 1, "There's only one item in the database");
-    equal(db.__raw__[0].key, 2, "This item has the right value");
+    equal(db.length, 1, "There's only one item in the database");
+    equal(db[0].key, 2, "This item has the right value");
     equal(db.addIf().length, 2, "There are two constraints");
   });
 
   test("Only add if the key == 2, add a value == 3 function, then remove it", function(){
-    var db = DB();
+    var db = bracket();
     expect(7);
 
     db.addIf(function(what) {
@@ -312,14 +312,14 @@ module('AddIf');
       { key: 2 , value: 3}
     );
 
-    equal(db.__raw__.length, 2, "There's two items in the database");
-    equal(db.__raw__[0].value, 2, "This item has the right value");
+    equal(db.length, 2, "There's two items in the database");
+    equal(db[0].value, 2, "This item has the right value");
     equal(db.addIf().length, 1, "There is one constraint");
   });
 
 module('beforeAdd');
   test("Run a test and increment a value before insertion", function(){
-    var db = DB();
+    var db = bracket();
 
     db.beforeAdd(function(what) {
       equal(true, true, "beforeAdd being run");
@@ -332,77 +332,77 @@ module('beforeAdd');
       { key: 2 }
     ]);
 
-    equal(db.__raw__.length, 2, "There's only one item in the database");
-    equal(db.__raw__[0].key, 2, "This item has the right value");
-    equal(db.__raw__[0].newkey, 1, "This item has the right value");
+    equal(db.length, 2, "There's only one item in the database");
+    equal(db[0].key, 2, "This item has the right value");
+    equal(db[0].newkey, 1, "This item has the right value");
     equal(db.beforeAdd().length, 1, "There is one constraint");
   });
 
 module("Removal");
   test("Remove all", function(){
-    var db = DB(
+    var db = bracket(
       { key1: 0 }, 
       { key2: 'value2' }, 
       { key1: 'value3' }
     );
 
     var removedRecords = db.remove();
-    equal(db.__raw__.length, 0, "All items have been removed");
+    equal(db.length, 0, "All items have been removed");
     equal(removedRecords.length, 3, "I got three records back");
     equal(removedRecords[0].key1, 0, "The first record looks right");
     equal(typeof removedRecords.find, 'function', "It looks to be chained too");
   });
 
   test("Remove first element by KV", function(){
-    var db = DB(
+    var db = bracket(
       { key1: 0 }, 
       { key2: 'value2' }, 
       { key1: 'value3' }
     );
 
     db.remove({key1: 0});
-    equal(db.__raw__.length, 2, "There's two elements left");
-    equal(db.__raw__[0].key2, "value2", "The first one has the expected value");
+    equal(db.length, 2, "There's two elements left");
+    equal(db[0].key2, "value2", "The first one has the expected value");
   });
 
   test("Remove first element by KV - find pattern", function(){
-    var db = DB(
+    var db = bracket(
       { key1: 0 }, 
       { key2: 'value2' }, 
       { key1: 'value3' }
     );
 
     db.find({key1: 0}).remove();
-    equal(db.__raw__.length, 2, "There's two elements left");
-    equal(db.__raw__[0].key2, "value2", "The first one has the expected value");
+    equal(db.length, 2, "There's two elements left");
+    equal(db[0].key2, "value2", "The first one has the expected value");
   });
 
   test("Remove middle element by KV", function(){
-    var db = DB(
+    var db = bracket(
       { key1: 0 }, 
       { key2: 'value2' }, 
       { key1: 'value3' }
     );
 
     db.remove({key2: 'value2'});
-    equal(db.__raw__.length, 2, "There's two elements left");
-    equal(db.__raw__[1].key1, "value3", "The last one has the expected value");
+    equal(db.length, 2, "There's two elements left");
+    equal(db[1].key1, "value3", "The last one has the expected value");
   });
 
   test("Remove last element by KV", function(){
-    var db = DB(
+    var db = bracket(
       { key1: 0 }, 
       { key2: 'value2' }, 
       { key1: 'value3' }
     );
 
     db.remove({key1: 'value3'});
-    equal(db.__raw__.length, 2, "There's two elements left");
+    equal(db.length, 2, "There's two elements left");
   });
 
   test("(Remove last element by KV, insert again) * 10", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -414,70 +414,70 @@ module("Removal");
       db.insert( db.remove({key1: 'value3'}) );
     }
 
-    equal(db.__raw__.length, 3, "There's three elements");
+    equal(db.length, 3, "There's three elements");
   });
 
 module("Removal - syntax check");
   test("Remove middle element by arglist", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
       ),
       res = db.remove('key2', 'value2');
 
-    equal(db.__raw__.length, 2, "There's two elements left");
-    equal(db.__raw__[1].key1, "value3", "The last one has the expected value");
+    equal(db.length, 2, "There's two elements left");
+    equal(db[1].key1, "value3", "The last one has the expected value");
     equal(typeof res.find, 'function', "It looks to be chained");
   });
 
   test("Remove middle element by record function", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
       ),
       res = db.remove(function(record) { return record.key2 == 'value2'; });
 
-    equal(db.__raw__.length, 2, "There's two elements left");
-    equal(db.__raw__[1].key1, "value3", "The last one has the expected value");
+    equal(db.length, 2, "There's two elements left");
+    equal(db[1].key1, "value3", "The last one has the expected value");
     equal(typeof res.find, 'function', "It looks to be chained");
   });
 
   test("Remove middle element by key function", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
       ),
       res = db.remove({key2: function(value) { return value == 'value2'; }});
 
-    equal(db.__raw__.length, 2, "There's two elements left");
-    equal(db.__raw__[1].key1, "value3", "The last one has the expected value");
+    equal(db.length, 2, "There's two elements left");
+    equal(db[1].key1, "value3", "The last one has the expected value");
     equal(typeof res.find, 'function', "It looks to be chained");
   });
 
   test("Remove middle element by expression", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
       ),
       res = db.remove({key2: db('== "value2"')});
 
-    equal(db.__raw__.length, 2, "There's two elements left");
-    equal(db.__raw__[1].key1, "value3", "The last one has the expected value");
+    equal(db.length, 2, "There's two elements left");
+    equal(db[1].key1, "value3", "The last one has the expected value");
     equal(typeof res.find, 'function', "It looks to be chained");
   });
 
 module("unset");
   test("Unset a single key", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0, key2: 1 }, 
         { key2: 'value2', key3: false }, 
         { key1: 'value3', key2: null }
@@ -485,13 +485,13 @@ module("unset");
 
     db.unset('key2');
 
-    equal('key2' in db.__raw__[0], false, "key2 not in the first record");
-    equal('key2' in db.__raw__[1], false, "key2 also not in the second record");
+    equal('key2' in db[0], false, "key2 not in the first record");
+    equal('key2' in db[1], false, "key2 also not in the second record");
   });
 
   test("Unset a single key in a find chain", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0, key2: 1 }, 
         { key2: 'value2', key3: false }, 
         { key1: 'value3', key2: null }
@@ -499,56 +499,56 @@ module("unset");
 
     db.find({key1: 0}).unset('key2');
 
-    equal('key2' in db.__raw__[0], false, "key2 not in the first record");
-    equal('key2' in db.__raw__[1], true, "key2 in the second record still");
+    equal('key2' in db[0], false, "key2 not in the first record");
+    equal('key2' in db[1], true, "key2 in the second record still");
   });
 
   test("Unset a list of keys", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0, key2: 1 }, 
         { key2: 'value2', key3: false }, 
         { key1: 'value3', key2: null }
       );
 
     db.unset(['key2', 'key1']);
-    equal('key1' in db.__raw__[0], false, "key1 not in the first record");
-    equal('key2' in db.__raw__[0], false, "key2 also not in first result");
-    equal('key3' in db.__raw__[1], true, "key3 still in second result");
+    equal('key1' in db[0], false, "key1 not in the first record");
+    equal('key2' in db[0], false, "key2 also not in first result");
+    equal('key3' in db[1], true, "key3 still in second result");
   });
 
 module("update");
   test("Add a Key/Value pair by Object", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
       ),
       res = db.update({key4: 0});
 
-    equal(db.__raw__[0].key4, 0, "Checks out");
-    equal(db.__raw__[1].key4, 0, "Checks out");
-    equal(db.__raw__[2].key4, 0, "Checks out");
+    equal(db[0].key4, 0, "Checks out");
+    equal(db[1].key4, 0, "Checks out");
+    equal(db[2].key4, 0, "Checks out");
   });
 
   test("Add a Key/Value pair by argList", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
       ),
       res = db.update('key4', 0);
 
-    equal(db.__raw__[0].key4, 0, "Checks out");
-    equal(db.__raw__[1].key4, 0, "Checks out");
-    equal(db.__raw__[2].key4, 0, "Checks out");
+    equal(db[0].key4, 0, "Checks out");
+    equal(db[1].key4, 0, "Checks out");
+    equal(db[2].key4, 0, "Checks out");
   });
 
   test("Add a Key/Value pair by record Function", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -557,21 +557,21 @@ module("update");
         record.key4 = 0;
       });
 
-    equal(db.__raw__[0].key4, 0, "Checks out");
-    equal(db.__raw__[1].key4, 0, "Checks out");
-    equal(db.__raw__[2].key4, 0, "Checks out");
+    equal(db[0].key4, 0, "Checks out");
+    equal(db[1].key4, 0, "Checks out");
+    equal(db[2].key4, 0, "Checks out");
   });
 
   test("Add a Key/Value pair by keyed Function with global variables", function(){
     self.i = 0;
     var 
-      db = DB({}, {}, {}, {}),
-      res = db.update({a: DB('i++')});
+      db = bracket({}, {}, {}, {}),
+      res = db.update({a: bracket('i++')});
 
-    equal(db.__raw__[0].a, 0, "Checks out");
-    equal(db.__raw__[1].a, 1, "Checks out");
-    equal(db.__raw__[2].a, 2, "Checks out");
-    equal(db.__raw__[3].a, 3, "Checks out");
+    equal(db[0].a, 0, "Checks out");
+    equal(db[1].a, 1, "Checks out");
+    equal(db[2].a, 2, "Checks out");
+    equal(db[3].a, 3, "Checks out");
 
     self.i = 0xBADC0DE;
   });
@@ -579,29 +579,29 @@ module("update");
   test("Add a Key/Value pair by keyed Function with local variables", function(){
     var 
       i = 0,
-      db = DB({}, {}, {}, {}),
-      res = db.update({a: eval(DB.local('i++'))});
+      db = bracket({}, {}, {}, {}),
+      res = db.update({a: eval(bracket.local('i++'))});
 
-    equal(db.__raw__[0].a, 0, "Checks out");
-    equal(db.__raw__[1].a, 1, "Checks out");
-    equal(db.__raw__[2].a, 2, "Checks out");
-    equal(db.__raw__[3].a, 3, "Checks out");
+    equal(db[0].a, 0, "Checks out");
+    equal(db[1].a, 1, "Checks out");
+    equal(db[2].a, 2, "Checks out");
+    equal(db[3].a, 3, "Checks out");
   });
 
   test("Insert an element into an existing db, chain an update and make sure only that element is updated", function(){
-    var db = DB({a: 1, b: 1});
+    var db = bracket({a: 1, b: 1});
 
     db.insert({a: 2}).update({b: 3});
 
-    equal(db.__raw__[0].b, 1, "b value maintained");
-    equal(db.__raw__[1].b, 3, "new b value assigned");
+    equal(db[0].b, 1, "b value maintained");
+    equal(db[1].b, 3, "new b value assigned");
 
   });
 
 module("Finding");
   test("Find all elements", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -615,7 +615,7 @@ module("Finding");
 
   test("Find all elements cascaded, 3 times", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -632,7 +632,7 @@ module("Finding");
 
   test("Find an empty set, then do a second find", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -647,7 +647,7 @@ module("Finding");
 
   test("Find one element by Object", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -661,7 +661,7 @@ module("Finding");
 
   test("Find one element by argList", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -675,7 +675,7 @@ module("Finding");
 
   test("Find one element by record function", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -691,7 +691,7 @@ module("Finding");
 
   test("Find one element by key function", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -707,7 +707,7 @@ module("Finding");
 
   test("Find one element by key expression", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -721,7 +721,7 @@ module("Finding");
 
   test("Find one element by anonymous expression", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -735,7 +735,7 @@ module("Finding");
 
   test("Find one element by argList", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -749,7 +749,7 @@ module("Finding");
 
   test("Find one element by record function", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -765,7 +765,7 @@ module("Finding");
 
   test("Find one element by key function", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -781,7 +781,7 @@ module("Finding");
 
   test("Find one element by expression", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -795,7 +795,7 @@ module("Finding");
 
   test("Find using the or operator - empty base case", function(){
     var 
-      db = DB(
+      db = bracket(
         {key: 1},
         {key: 2},
         {key: 3}
@@ -809,7 +809,7 @@ module("Finding");
 
   test("Find using the or operator", function(){
     var 
-      db = DB(
+      db = bracket(
         {key: 1},
         {key: 2},
         {key: 3}
@@ -823,7 +823,7 @@ module("Finding");
 
   test("Find using the OR operator with an AND operation - base", function(){
     var 
-      db = DB(
+      db = bracket(
         {a: 1, b: 1},
         {a: 1, b: 2},
         {a: 1, b: 3},
@@ -843,7 +843,7 @@ module("Finding");
 
   test("Find using the OR operator with an AND operation - two ORs", function(){
     var 
-      db = DB(
+      db = bracket(
         {a: 1, b: 1},
         {a: 1, b: 2},
         {a: 1, b: 3},
@@ -866,7 +866,7 @@ module("Finding");
 
   test("Find using the OR operator with an AND operation - inverted", function(){
     var 
-      db = DB(
+      db = bracket(
         {a: 1, b: 1},
         {a: 1, b: 2},
         {a: 1, b: 3},
@@ -889,7 +889,7 @@ module("Finding");
 
   test("Find using the or operator - duplicate conditions shouldn't yield duplicate results", function(){
     var 
-      db = DB(
+      db = bracket(
         {key: 1},
         {key: 2},
         {key: 3}
@@ -903,7 +903,7 @@ module("Finding");
 
   test("Find using the or operator - array in first arg + condition", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 1, key2: 2 },
         { key1: 2, key2: 1 },
         { key1: 3, key2: 2 }
@@ -917,7 +917,7 @@ module("Finding");
 
   test("Find using the or operator part2", function(){
     var 
-      db = DB(),
+      db = bracket(),
       filter = [],
       res,
       ix;
@@ -936,17 +936,17 @@ module("Finding");
 
   test("Find an array using isArray", function(){
     var 
-      db = DB({key: [1,2,3]}),
+      db = bracket({key: [1,2,3]}),
       res;
 
     // this should return nothing.
     res = db.find({key: [1,2,3]});
     equal(res.length, 0, "I failed to find the array using the isin short syntax. Good!");
 
-    res = db.find({key: DB.isArray([1,2,3])});
+    res = db.find({key: bracket.isArray([1,2,3])});
     equal(res.length, 1, "I succeeded to find the array using the isArray method");
 
-    res = db.find({key: DB.isArray([1,2])});
+    res = db.find({key: bracket.isArray([1,2])});
     equal(res.length, 0, "I failed to find the array using the isArray method with a bad query");
   });
 
@@ -954,7 +954,7 @@ module("FindFirst");
   test("First element by Object", function(){
     expect(1);
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -967,7 +967,7 @@ module("FindFirst");
   test("First element by Object - pointer", function(){
     expect(1);
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -981,7 +981,7 @@ module("FindFirst");
     expect(1);
     var 
       res = 0;
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 0 }, 
         { key1: 'value3' }
@@ -994,7 +994,7 @@ module("FindFirst");
 
   test("First element by argList", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -1006,7 +1006,7 @@ module("FindFirst");
 
   test("First element by record function", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -1020,7 +1020,7 @@ module("FindFirst");
 
   test("First element by key function", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -1034,7 +1034,7 @@ module("FindFirst");
 
   test("First element by key expression", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -1046,7 +1046,7 @@ module("FindFirst");
 
   test("First element by anonymous expression", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -1058,7 +1058,7 @@ module("FindFirst");
 
   test("First element by argList", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -1070,7 +1070,7 @@ module("FindFirst");
 
   test("First element by record function", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -1084,7 +1084,7 @@ module("FindFirst");
 
   test("First element by key function", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -1098,7 +1098,7 @@ module("FindFirst");
 
   test("First element by expression", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -1111,7 +1111,7 @@ module("FindFirst");
   test("First element by Object - failure", function(){
     expect(1);
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -1124,7 +1124,7 @@ module("FindFirst");
 module("like");
   test("Find records based on KV convention", function(){
     var 
-      db = DB(
+      db = bracket(
         { key: 'abcde' }, 
         { key: 'cdefg' }, 
         { key: 'efgh' }, 
@@ -1139,7 +1139,7 @@ module("like");
 
   test("Find records based on KV convention - malformed regex", function(){
     var 
-      db = DB(
+      db = bracket(
         { key: 'ab[cde' }, 
         { key: 'cd]efg' }, 
         { key: 'efb[c]gh' }, 
@@ -1154,7 +1154,7 @@ module("like");
 
   test("Find records on a table with null values", function(){
     var 
-      db = DB(
+      db = bracket(
         { key: 'abcde' }, 
         { key:  null }, 
         { key:  null }, 
@@ -1168,7 +1168,7 @@ module("like");
 
   test("Find records based on argList convention", function(){
     var 
-      db = DB(
+      db = bracket(
         { key: 'abcde' }, 
         { key: 'cdefg' }, 
         { key: 'efgh' }, 
@@ -1184,7 +1184,7 @@ module("like");
 module("isin");
   test("Find records with a value in a list based on KV convention", function(){
     var 
-      db = DB(
+      db = bracket(
         { key: 0 }, 
         { key: 1 }, 
         { key: 2 }
@@ -1198,7 +1198,7 @@ module("isin");
 
   test("Find records with a value in a list based on KV convention using the short syntax", function(){
     var 
-      db = DB(
+      db = bracket(
         { key: 0 }, 
         { key: 1 }, 
         { key: 2 }
@@ -1212,7 +1212,7 @@ module("isin");
 
   test("Find records with a value in a list based on a function-callback + array convention", function(){
     var 
-      db = DB(
+      db = bracket(
         { key: 'apple' }, 
         { key: 'bananas' },
         { key: 'red apple' },
@@ -1226,7 +1226,7 @@ module("isin");
 
   test("Find records with a value in a list based on a mixed-use + array convention", function(){
     var 
-      db = DB(
+      db = bracket(
         { key: 'apple' }, 
         { key: 'bananas' },
         { key: 'red apple' },
@@ -1240,7 +1240,7 @@ module("isin");
 
   test("Find records with a value in a list based on a multi-functional + array convention", function(){
     var 
-      db = DB(
+      db = bracket(
         { key: 'apple' }, 
         { key: 'bananas' },
         { key: 'red apple' },
@@ -1254,7 +1254,7 @@ module("isin");
 
   test("Find records with a value in a list based on argList convention", function(){
     var 
-      db = DB(
+      db = bracket(
         { key: 0 }, 
         { key: 1 }, 
         { key: 2 }
@@ -1269,7 +1269,7 @@ module("isin");
 module("missing");
   test("Find records without a single specific key set", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -1282,7 +1282,7 @@ module("missing");
   });
   test("Find records without two specific keys set", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key1: false, key2: 'value2' }, 
         { key3: 'value3' }
@@ -1295,7 +1295,7 @@ module("missing");
   });
   test("Chaining", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0, key3: 42 }, 
         { key1: 0, key2: 0 }, 
         { key1: 'value3' }
@@ -1309,7 +1309,7 @@ module("missing");
   });
   test("Find records comma'd with a filter", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0, key3: 42 }, 
         { key1: 0, key2: 0 }, 
         { key1: 'value3' }
@@ -1327,7 +1327,7 @@ module("missing");
 module('hasKey');
   test("Find records with a single specific key set", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 },
         { key2: 'value2' },
         { key1: 'value3' }
@@ -1341,7 +1341,7 @@ module('hasKey');
 
   test("Find records with a single specific key set (chained)", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 },
         { key2: 'value2' },
         { key1: 0 }
@@ -1353,7 +1353,7 @@ module('hasKey');
 
   test("Find records with a single specific key set (chained partial)", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0,
           key2: 'here'
         },
@@ -1370,7 +1370,7 @@ module('hasKey');
 module('has');
   test("Search amongst an array", function(){
     var
-      db = DB(
+      db = bracket(
         {a: [1, 2, 3]},
         {a: [2, 3, 4]},
         {b: [0, 1, 2]}
@@ -1385,7 +1385,7 @@ module('select');
   test("Select records by a single key", function(){
     expect(3);
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -1400,7 +1400,7 @@ module('select');
   test("Select records by two keys", function(){
     expect(3);
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -1416,7 +1416,7 @@ module('select');
 
   test("Select records by a key that is not present", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -1432,7 +1432,7 @@ module('slice');
   test("Slice the first 4 records", function(){
     expect(2);
     var 
-      db = DB([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+      db = bracket([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
       res = db.slice(0, 4);
 
     equal(res.length, 4, "I got four records");
@@ -1441,7 +1441,7 @@ module('slice');
   test("Slice the first 4 records - method 2", function(){
     expect(2);
     var 
-      db = DB([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+      db = bracket([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
       res = db.find().slice(0, 4);
 
     equal(res.length, 4, "I got four records");
@@ -1450,7 +1450,7 @@ module('slice');
   test("Slice the first 4 records - method 3", function(){
     expect(2);
     var 
-      db = DB([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+      db = bracket([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
       res = db.find().select('*').slice(0, 4);
 
     equal(res.length, 4, "I got four records");
@@ -1460,7 +1460,7 @@ module('slice');
 module('invert');
   test("Find one element by Object, invert results", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0 }, 
         { key2: 'value2' }, 
         { key1: 'value3' }
@@ -1474,7 +1474,7 @@ module('invert');
 
   test("Find two elements by Object, invert results", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0, a: 1 }, 
         { key2: 'value2' }, 
         { key1: 'value3', a: 1 }
@@ -1488,7 +1488,7 @@ module('invert');
 
   test("Find all elements anonymously, invert results", function(){
     var 
-      db = DB(
+      db = bracket(
         { key1: 0, a: 1 }, 
         { key2: 'value2' }, 
         { key1: 'value3', a: 1 }
@@ -1502,7 +1502,7 @@ module('invert');
 module('sync');
   test("Insert an element", function(){
     var 
-      db = DB(),
+      db = bracket(),
       data,
       ran = false;
       
@@ -1518,7 +1518,7 @@ module('sync');
   });
   test("Remove an element", function(){
     var 
-      db = DB({key: 0}, {key: 1}),
+      db = bracket({key: 0}, {key: 1}),
       data,
       ran = false;
       
@@ -1534,7 +1534,7 @@ module('sync');
   });
   test("Update an element", function(){
     var 
-      db = DB({key: 0}),
+      db = bracket({key: 0}),
       data,
       ran = false;
       
@@ -1550,7 +1550,7 @@ module('sync');
   });
   test("Insert an element x 4", function(){
     var 
-      db = DB(),
+      db = bracket(),
       data,
       ran = 0;
       
@@ -1569,7 +1569,7 @@ module('sync');
 
   test("Insert an element x 4 functions", function(){
     var 
-      db = DB(),
+      db = bracket(),
       data,
       ran = 0;
       
@@ -1590,7 +1590,7 @@ module('sync');
 module('view');
   test("Create a view", function(){
     var 
-      db = DB({ 
+      db = bracket({ 
           index: 0,
           key: "one"
         }, 
@@ -1610,7 +1610,7 @@ module('view');
 
   test("Create a function view", function(){
     var 
-      db = DB(
+      db = bracket(
         { 
           index: {a: ['value2']},
           key: "valuetwo" 
@@ -1628,7 +1628,7 @@ module('view');
 
   test("Create a deep view", function(){
     var 
-      db = DB({ 
+      db = bracket({ 
         index: {a: [0]},
           key: "one"
         }, 
@@ -1650,7 +1650,7 @@ module('view');
 
   test("Update a view", function(){
     var 
-      db = DB({ 
+      db = bracket({ 
           index: 0,
           key: "one"
         }, 
@@ -1674,7 +1674,7 @@ module('view');
 module('lazyView');
   test("Chained lazyView", function(){
     var 
-      view = DB({ 
+      view = bracket({ 
           index: 0,
           key: "one"
         }, 
@@ -1691,7 +1691,7 @@ module('lazyView');
   });
   test("Create a lazyView", function(){
     var 
-      db = DB({ 
+      db = bracket({ 
           index: 0,
           key: "one"
         }, 
@@ -1710,7 +1710,7 @@ module('lazyView');
   });
   test("Update a lazyView", function(){
     var 
-      db = DB({ 
+      db = bracket({ 
           index: 0,
           key: "one"
         }, 
@@ -1736,35 +1736,35 @@ module('lazyView');
 
 module("indexBy");
   test("re-ordering", function(){
-    var db = DB([
+    var db = bracket([
       {key: 5},
       {key: 3},
       {key: 7},
       {key: 2}
     ]);
 
-    equal(db.__raw__.length, 4, "The database has 4 elements");
-    equal(db.__raw__[0].key, 5, "The first element is 5");
-    equal(db.__raw__[1].key, 3, "The second element is 3");
+    equal(db.length, 4, "The database has 4 elements");
+    equal(db[0].key, 5, "The first element is 5");
+    equal(db[1].key, 3, "The second element is 3");
 
     db.indexBy('key', 'asc');
-    equal(db.__raw__.length, 4, "The database still has 4 elements");
-    equal(db.__raw__[0].key, 2, "The first element is 2");
-    equal(db.__raw__[1].key, 3, "The second element is 3");
-    equal(db.__raw__[2].key, 5, "The third element is 5");
-    equal(db.__raw__[3].key, 7, "The fourth element is 7");
+    equal(db.length, 4, "The database still has 4 elements");
+    equal(db[0].key, 2, "The first element is 2");
+    equal(db[1].key, 3, "The second element is 3");
+    equal(db[2].key, 5, "The third element is 5");
+    equal(db[3].key, 7, "The fourth element is 7");
 
     db.indexBy('key', 'desc');
-    equal(db.__raw__.length, 4, "The database still has 4 elements");
-    equal(db.__raw__[0].key, 7, "The first element is 7");
-    equal(db.__raw__[1].key, 5, "The second element is 5");
-    equal(db.__raw__[2].key, 3, "The third element is 3");
-    equal(db.__raw__[3].key, 2, "The fourth element is 2");
+    equal(db.length, 4, "The database still has 4 elements");
+    equal(db[0].key, 7, "The first element is 7");
+    equal(db[1].key, 5, "The second element is 5");
+    equal(db[2].key, 3, "The third element is 3");
+    equal(db[3].key, 2, "The fourth element is 2");
   });
 module('each');
   test("Select 4 pairs from a database, run a test on each of them", function(){
     expect(4);
-    var db = DB([
+    var db = bracket([
       {key: 5},
       {key: 3},
       {key: 7},
@@ -1778,7 +1778,7 @@ module('each');
 
   test("Select 4 pairs from a database, run an unchained each of them", function(){
     expect(4);
-    var db = DB([
+    var db = bracket([
       {key: 5},
       {key: 3},
       {key: 7},
@@ -1792,7 +1792,7 @@ module('each');
   });
 
   test("Select 4 pairs from a database, run a console.log each of them", function(){
-    var db = DB([
+    var db = bracket([
       {key: 5},
       {key: 3},
       {key: 7},
@@ -1809,7 +1809,7 @@ module('each');
 
   test("Select 4 values from a database, make sure that it's a one dimensional array", function(){
     expect(4);
-    var db = DB([
+    var db = bracket([
       {key: 5},
       {key: 3},
       {key: 7},
@@ -1823,7 +1823,7 @@ module('each');
   });
 
   test("Select 4 values from a database, make sure return values get propogated", function(){
-    var db = DB([
+    var db = bracket([
       {key: false},
       {longkey: 3},
       {key: 7},
@@ -1840,7 +1840,7 @@ module('each');
 module('order');
 
   test("Sorting by a numeric key", function(){
-    var db = DB(),
+    var db = bracket(),
       list = [],
       newplace,
       ix = 0;
@@ -1878,7 +1878,7 @@ module('order');
 
   test("Sorting by a numeric key (2)", function(){
     var 
-      db = DB(),
+      db = bracket(),
       // have some post-insertion records
       ins =[
         {b:2},
@@ -1920,7 +1920,7 @@ module('order');
 module('schema');
   test('Getting a schema with 20 records', function(){
     var 
-      db = DB(), 
+      db = bracket(), 
       ix, 
       iy,
       schema,
@@ -1939,7 +1939,7 @@ module('schema');
   });
   test('Getting a schema with 4 records', function(){
     var 
-      db = DB(), 
+      db = bracket(), 
       ix, 
       iy,
       schema,
@@ -1958,7 +1958,7 @@ module('schema');
   });
   test('Getting a schema with 1 record', function(){
     var 
-      db = DB([{key1: 'value', key2: 'value'}]), 
+      db = bracket([{key1: 'value', key2: 'value'}]), 
       schema;
 
     schema = db.schema().sort().join('');
@@ -1969,7 +1969,7 @@ module('group');
   test("Grouping by department (from the readme)", function(){
     expect(3);
 
-    var db = DB(
+    var db = bracket(
       { department: "accounting", name: "Alice" },
       { department: "accounting", name: "Bob" },
       { department: "IT", name: "Eve" }
@@ -1984,7 +1984,7 @@ module('group');
   test("Grouping by number", function(){
     expect(2);
 
-    var db = DB(
+    var db = bracket(
       { department: 1, name: "Alice" },
       { department: 1, name: "Bob" }
     );

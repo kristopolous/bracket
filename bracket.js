@@ -25,7 +25,7 @@
 // 6. Finally a hook that exposes the internal functions
 //    outward, plus a few other inline ones that don't get
 //    used internally.
-(function(){
+var bracket = (function(){
 
   var 
     // undefined
@@ -751,6 +751,15 @@
     return (new bracket()).concat(list);
   }
 
+  // see http://stackoverflow.com/questions/1606797/use-of-apply-with-new-operator-is-this-possible
+  function construct(constructor, args) {
+    function F() {
+        return constructor.apply(this, args);
+    }
+    F.prototype = constructor.prototype;
+    return new F();
+  }
+
   // --- START OF AN INSTANCE ----
   //
   // This is the start of a bracket instance.
@@ -760,7 +769,11 @@
   // in a language such as Java or C++ should
   // go above!!!!
   //
-  var bracket = self.bracket = function(arg0, arg1){
+  var bracket = function(arg0, arg1){
+    if(!(this instanceof bracket)) {
+      return construct(bracket, slice.call(arguments));
+    }
+
     this.constraints = {addIf:[]};
     this.syncList = [];
     this.syncLock = false;
@@ -916,14 +929,13 @@
     if(_.isArr(key)) {
       return each(key, arguments.callee);
     } else {
-      var list = _.isArr(this) ? this : ret.find();
       each(this, function(what) {
         if(key in what) {
           delete what[key];
         }
       });
-      sync();
-      return chain(list);
+      this.sync();
+      return this;
     }
   }
 
@@ -941,7 +953,7 @@
 
   // hasKey is to get records that have keys defined
   bracket.prototype.hasKey = function() {
-    var inner = outer.find(missing(slice.call(arguments)));
+    var inner = this.find(missing(slice.call(arguments)));
 
     return this.invert(inner, this);
   }
@@ -1421,7 +1433,6 @@
     isin: isin,
     isArray: isArray,
 
-
     // like expr but for local functions
     local: function(){
       return '(function(){ return ' + 
@@ -1489,4 +1500,5 @@
     }
   });
 
+  return bracket;
 })();
