@@ -800,7 +800,7 @@ var bracket = (function(){
     }
 
     // Register this instance.
-    bracket.all.push(ret);
+    bracket.all.push(this);
   }
 
   bracket.prototype = Object.create(Array.prototype);
@@ -1244,6 +1244,7 @@ var bracket = (function(){
     //
     insert: function(param) {
       var 
+        mthis = this,
         ix,
         unique = this.constraints.unique,
         existing = [],
@@ -1285,14 +1286,14 @@ var bracket = (function(){
             map_;
 
           // We create a lazyView 
-          if(!this._g[key]) {
-            this._g[key] = this.lazyView(unique);
+          if(!mthis._g[key]) {
+            mthis._g[key] = this.lazyView(unique);
           } else {
             // Only update if a delete has happened
-            this._g[key]('del');
+            mthis._g[key]('del');
           }
 
-          map_ = this._g[key];
+          map_ = mthis._g[key];
 
           // This would mean that the candidate to be inserted
           // should be rejected because it doesn't satisfy the
@@ -1314,7 +1315,7 @@ var bracket = (function(){
           }
         }
 
-        each(this.constraints.addIf, function(test) {
+        each(mthis.constraints.addIf, function(test) {
           // Make sure that our candidate passes all tests.
           doAdd &= test(which);
         });
@@ -1324,18 +1325,18 @@ var bracket = (function(){
         } 
         // if we got here then we can update 
         // our dynamic counter.
-        this._ix.ins++;
+        mthis._ix.ins++;
 
         // If we get here, then the data is going in.
-        ix = this.length;
+        ix = mthis.length;
 
         // insert from a template if available
-        if(_template) {
+        if(mthis._template) {
           var instance = {};
           
           // create a template instance that's capable
           // of holding evaluations
-          each(_template, function(key, value) {
+          each(mthis._template, function(key, value) {
             if(_.isFun(value)) {
               instance[ key ] = value();
             } else {
@@ -1348,7 +1349,7 @@ var bracket = (function(){
           which = extend(instance, which);
         }
 
-        this.push(which);
+        mthis.push(which);
 
         ixList.push(ix);
       });
