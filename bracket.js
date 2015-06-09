@@ -944,7 +944,7 @@ var bracket = (function(){
     // This is a shorthand to find for when you are only expecting one result.
     // A boolean false is returned if nothing is found
     findFirst: function(){
-      var res = ret.find.apply(this, arguments);
+      var res = this.find.apply(this, arguments);
       return res.length ? res[0] : false;
     },
 
@@ -1049,7 +1049,7 @@ var bracket = (function(){
     // the duplication policy of the first match being preferred.
     //
     keyBy: function(field) {
-      var groupResult = ret.group.apply(this, arguments);
+      var groupResult = this.group.apply(this, arguments);
 
       each(groupResult, function(key, value) {
         groupResult[key] = value[0];
@@ -1182,7 +1182,7 @@ var bracket = (function(){
     // an object that can be indexed in order to get into the data.
     //
     view: function(field, type) {
-      var fn = ret.lazyView(field, type);
+      var fn = this.lazyView(field, type);
       this.sync(fn);
       return fn;
     },
@@ -1382,7 +1382,7 @@ var bracket = (function(){
       if(_.isArr(this)) { list = this; } 
       else if(_.isArr(arg0)) { list = arg0; } 
       else if(arguments.length > 0){ 
-        save = ret.find.apply(this, arguments);
+        save = this.find.apply(this, arguments);
         if(save.length) {
           this.splice.apply(this, [0, this.length].concat(this.invert(save)));
           this._ix.del++;
