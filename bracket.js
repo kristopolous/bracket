@@ -925,7 +925,10 @@ var bracket = (function(){
 
     unset: function(key) {
       if(_.isArr(key)) {
-        return each(key, arguments.callee);
+        var mthis = this, mfunc = arguments.callee;
+        return each(key, function(){
+          return mfunc.apply(mthis, arguments);
+        });
       } else {
         each(this, function(what) {
           if(key in what) {
@@ -1133,6 +1136,7 @@ var bracket = (function(){
     lazyView: function(field, type) {
       // keep track
       var 
+        mthis = this,
         myix = {del: this._ix.del, ins: this._ix.ins},
         keyer;
       
@@ -1141,26 +1145,26 @@ var bracket = (function(){
           field = '.' + field;
         }
 
-        eval( "keyer: function(r,ref){try{ref[rX] = update[rX] = r;} catch(x){}}".replace(/X/g, field));
+        eval( "keyer = function(r,ref){try{ref[rX] = update[rX] = r;} catch(x){}}".replace(/X/g, field));
       } else {
-        eval( "keyer: function(r,ref){with(r) { var val = X };try{ref[val] = update[val] = r;} catch(x){}}".replace(/X/g, field));
+        eval( "keyer = function(r,ref){with(r) { var val = X };try{ref[val] = update[val] = r;} catch(x){}}".replace(/X/g, field));
       }
 
       function update(whence) {
         if(whence) {
           // if we only care about updating our views
           // on a new delete, then we check our atomic
-          if(whence == 'del' && myix.del == this._ix.del) {
+          if(whence == 'del' && myix.del == mthis._ix.del) {
             return;
-          } else if(whence == 'ins' && myix.ins == this._ix.ins) {
+          } else if(whence == 'ins' && myix.ins == mthis._ix.ins) {
             return;
           }
         }
-        myix = {del: this._ix.del, ins: this._ix.ins};
+        myix = {del: mthis._ix.del, ins: mthis._ix.ins};
 
         var ref = {};
 
-        each(this, function(row) {
+        each(mthis, function(row) {
           keyer(row, ref);
         });
 
