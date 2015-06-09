@@ -1426,6 +1426,7 @@ var bracket = (function(){
         sync();
       }
       return chain(save.reverse());
+    }
   });
 
   extend(bracket, {
