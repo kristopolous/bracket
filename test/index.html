@@ -468,7 +468,7 @@ module("Removal - syntax check");
         { key2: 'value2' }, 
         { key1: 'value3' }
       ),
-      res = db.remove({key2: db('== "value2"')});
+      res = db.remove({key2: bracket('== "value2"')});
 
     equal(db.length, 2, "There's two elements left");
     equal(db[1].key1, "value3", "The last one has the expected value");
@@ -713,7 +713,7 @@ module("Finding");
         { key2: 'value2' }, 
         { key1: 'value3' }
       ),
-      res = db.find({key1: db('=== 0')});
+      res = db.find({key1: bracket('=== 0')});
 
     equal(res.length, 1, "I got one record");
     equal(res[0].key1, 0, "It is the right one");
@@ -727,7 +727,7 @@ module("Finding");
         { key2: 'value2' }, 
         { key1: 'value3' }
       ),
-      res = db.find(db('key1', '=== 0'));
+      res = db.find(bracket('key1', '=== 0'));
 
     equal(res.length, 1, "I got one record");
     equal(res[0].key1, 0, "It is the right one");
@@ -787,7 +787,7 @@ module("Finding");
         { key2: 'value2' }, 
         { key1: 'value3' }
       ),
-      res = db.find({key1: db('=== 0')});
+      res = db.find({key1: bracket('=== 0')});
 
     equal(res.length, 1, "I got one record");
     equal(res[0].key1, 0, "It is the right one");
@@ -1040,7 +1040,7 @@ module("FindFirst");
         { key2: 'value2' }, 
         { key1: 'value3' }
       ),
-      res = db.findFirst({key1: db('=== 0')});
+      res = db.findFirst({key1: bracket('=== 0')});
 
     equal(res.key1, 0, "It is the right one");
   });
@@ -1052,7 +1052,7 @@ module("FindFirst");
         { key2: 'value2' }, 
         { key1: 'value3' }
       ),
-      res = db.findFirst(db('key1', '=== 0'));
+      res = db.findFirst(bracket('key1', '=== 0'));
 
     equal(res.key1, 0, "It is the right one");
   });
@@ -1104,7 +1104,7 @@ module("FindFirst");
         { key2: 'value2' }, 
         { key1: 'value3' }
       ),
-      res = db.findFirst({key1: db('=== 0')});
+      res = db.findFirst({key1: bracket('=== 0')});
 
     equal(res.key1, 0, "It is the right one");
   });
@@ -1899,7 +1899,7 @@ module('order');
     // increment the existing entries by ins.length which
     // are past $start
     db 
-      .find({id: db('> ' + start)})
+      .find({id: bracket('> ' + start)})
       .update(function(e){ e.id += ins.length });
 
     // insert our post records and give it the gap

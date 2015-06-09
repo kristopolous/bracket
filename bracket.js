@@ -68,7 +68,7 @@ var bracket = (function(){
 
     proxy = function(what, caller) {
       return function() {
-        caller.apply(what, slice.call(arguments));
+        caller.apply(what, arguments);
       }
     },
 
@@ -764,7 +764,7 @@ var bracket = (function(){
 
   // --- START OF AN INSTANCE ----
   //
-  // This is the start of a bracket instance.
+  // This is the Start of a bracket instance.
   // All the instance local functions
   // and variables ought to go here. Things
   // that would have been considered "static"
@@ -772,6 +772,10 @@ var bracket = (function(){
   // go above!!!!
   //
   var bracket = function(arg0, arg1){
+    if (arguments.length == 1 && _.isStr(arg0)) { 
+      return (expression()).apply(this, arguments) 
+    }
+
     if(!(this instanceof bracket)) {
       return construct(bracket, slice.call(arguments));
     }
@@ -795,7 +799,6 @@ var bracket = (function(){
     if (arguments.length == 1) {
       if(_.isArr(arg0)) { this.insert(arg0) }
       else if(_.isFun(arg0)) { this.insert(arg0()) }
-      else if(_.isStr(arg0)) { return bracket.apply(this, arguments) }
       else if(_.isObj(arg0)) { this.insert(arg0) }
     } else if(arguments.length > 1) {
       this.insert(slice.call(arguments));
