@@ -132,8 +132,8 @@ var bracket = (function(){
     each = [].forEach ?
       function (obj, cb) {
         // Try to return quickly if there's nothing to do.
-        if (obj.length === 0) { return; }
         if (_.isArr(obj)) { 
+          if (obj.length === 0) { return; }
           obj.forEach(cb);
         } else if(_.isStr(obj) || _.isNum(obj) || _.isBool(obj)) {
           cb(obj);
@@ -783,9 +783,10 @@ var bracket = (function(){
     var mthis = this;
 
     each({
-      constraints: {addIf:[]},
+      constraints: {addIf:[], unique: false},
       syncList: [],
       syncLock: false,
+      length: 0,
 
       //
       // This is our atomic counter that
@@ -799,11 +800,12 @@ var bracket = (function(){
       _g: {}
     }, function(key, value) {
       Object.defineProperty(mthis, key, {
-        value: value,
         writable: true,
         configurable: true,
         enumerable: false
       });
+      console.log(key, '=', value);
+      mthis[key] = value;
     });
 
     // The ability to import a database from somewhere
@@ -1258,6 +1260,7 @@ var bracket = (function(){
     // data as a list of arguments, as an array, or as a single object.
     //
     insert: function(param) {
+      console.log(this, this instanceof bracket, this.constraints);
       var 
         mthis = this,
         ix,
