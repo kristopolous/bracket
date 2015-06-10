@@ -618,55 +618,52 @@ var bracket = (function(){
     }
   }
 
-  var expression = function (){
+  var expression = function(arg0, arg1) {
+    var ret, expr;
 
-    return function(arg0, arg1) {
-      var ret, expr;
+    if(_.isStr( arg0 )) {
+      expr = arg0;
 
-      if(_.isStr( arg0 )) {
-        expr = arg0;
+      //
+      // There are TWO types of lambda function here (I'm not using the
+      // term 'closure' because that means something else)
+      //
+      // We can have one that is sensitive to a specific record member and 
+      // one that is local to a record and not a specific member.  
+      //
+      // As it turns out, we can derive the kind of function intended simply
+      // because they won't ever syntactically both be valid in real use cases.
+      //
+      // I mean sure, the empty string, space, semicolon etc is valid for both, 
+      // alright sure, thanks smarty pants.  But is that what you are using? really?
+      //
+      // No? ok, me either. This seems practical then.
+      //
+      // The invocation wrapping will also make this work magically, with proper
+      // expressive usage.
+      //
+      if(arguments.length == 1) {
+        try {
+          ret = new Function("x,rec", "try { return x " + expr + "} catch(e) {}");
+        } catch(ex) {}
 
-        //
-        // There are TWO types of lambda function here (I'm not using the
-        // term 'closure' because that means something else)
-        //
-        // We can have one that is sensitive to a specific record member and 
-        // one that is local to a record and not a specific member.  
-        //
-        // As it turns out, we can derive the kind of function intended simply
-        // because they won't ever syntactically both be valid in real use cases.
-        //
-        // I mean sure, the empty string, space, semicolon etc is valid for both, 
-        // alright sure, thanks smarty pants.  But is that what you are using? really?
-        //
-        // No? ok, me either. This seems practical then.
-        //
-        // The invocation wrapping will also make this work magically, with proper
-        // expressive usage.
-        //
-        if(arguments.length == 1) {
+        if(!ret) {
           try {
-            ret = new Function("x,rec", "try { return x " + expr + "} catch(e) {}");
+            ret = new Function("rec", "try { return " + arg0 + "} catch(e) {}");
           } catch(ex) {}
-
-          if(!ret) {
-            try {
-              ret = new Function("rec", "try { return " + arg0 + "} catch(e) {}");
-            } catch(ex) {}
-          }
         }
+      }
 
-        if(arguments.length == 2 && _.isStr(arg1)) {
-          ret = {};
-          expr = arg1;
+      if(arguments.length == 2 && _.isStr(arg1)) {
+        ret = {};
+        expr = arg1;
 
-          // if not, fall back on it 
-          ret[arg0] = new Function("x,rec", "try { return x " + expr + "} catch(e) {}");
-        }
+        // if not, fall back on it 
+        ret[arg0] = new Function("x,rec", "try { return x " + expr + "} catch(e) {}");
+      }
 
-        return ret;
-      } 
-    }
+      return ret;
+    } 
   }
 
   function eachRun(callback, arg1) {
@@ -728,7 +725,7 @@ var bracket = (function(){
   //
   var bracket = function(arg0, arg1){
     if (arguments.length == 1 && _.isStr(arg0)) { 
-      return (expression()).apply(this, arguments) 
+      return expression.apply(this, arguments);
     }
 
     if(!(this instanceof bracket)) {
@@ -986,9 +983,9 @@ var bracket = (function(){
     //   result.update({a: b});
     //
     update: function() {
-      var list = update.apply( this, arguments) ;
+      var list = update.apply(this, arguments);
       this.sync();
-      return chain (list);
+      return list;
     },
 
     //
@@ -1411,7 +1408,7 @@ var bracket = (function(){
     diff: setdiff,
     each: eachRun,
     not: not,
-    exec: expression(),
+    exec: expression,
     like: like,
     trace: trace,
     values: values,
