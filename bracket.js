@@ -780,20 +780,31 @@ var bracket = (function(){
       return construct(bracket, slice.call(arguments));
     }
 
-    this.constraints = {addIf:[]};
-    this.syncList = [];
-    this.syncLock = false;
+    var mthis = this;
 
-    //
-    // This is our atomic counter that
-    // gets moved forward for different
-    // operations
-    //
-    this._ix = {ins:0, del:0};
-    this._template = false;
+    each({
+      constraints: {addIf:[]},
+      syncList: [],
+      syncLock: false,
 
-    // globals with respect to this self.
-    this._g = {}
+      //
+      // This is our atomic counter that
+      // gets moved forward for different
+      // operations
+      //
+      _ix: {ins:0, del:0},
+      _template: false,
+
+      // globals with respect to this self.
+      _g: {}
+    }, function(key, value) {
+      Object.defineProperty(mthis, key, {
+        value: value,
+        writable: true,
+        configurable: true,
+        enumerable: false
+      });
+    });
 
     // The ability to import a database from somewhere
     if (arguments.length == 1) {
@@ -930,9 +941,10 @@ var bracket = (function(){
           return mfunc.apply(mthis, arguments);
         });
       } else {
-        each(this, function(what) {
-          if(key in what) {
-            delete what[key];
+        each(this, function(ix, item) {
+          console.log('item', ix, item);
+          if(key in item) {
+            delete item[key];
           }
         });
         this.sync();

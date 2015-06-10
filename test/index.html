@@ -498,7 +498,10 @@ module("unset");
         { key1: 'value3', key2: null }
       );
 
-    db.find({key1: 0}).unset('key2');
+    var ret = db.find({key1: 0});
+    console.log('myret', ret);
+    ret.unset('key2');
+    console.log(ret);
 
     equal('key2' in db[0], false, "key2 not in the first record");
     equal('key2' in db[1], true, "key2 in the second record still");
