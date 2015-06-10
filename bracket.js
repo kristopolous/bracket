@@ -639,10 +639,6 @@ var bracket = (function(){
   }
 
   var expression = (function(){
-    var 
-      regex = /^\s*([=<>!]+)['"]*(.*)$/,
-      canned,
-      cache = {};
 
     // A closure is needed here to avoid mangling pointers
     return function (){
@@ -672,23 +668,14 @@ var bracket = (function(){
           // expressive usage.
           //
           if(arguments.length == 1) {
-            if(!cache[expr]) {
+            try {
+              ret = new Function("x,rec", "try { return x " + expr + "} catch(e) {}");
+            } catch(ex) {}
 
+            if(!ret) {
               try {
-                ret = new Function("x,rec", "try { return x " + expr + "} catch(e) {}");
-              } catch(ex) {
-                ret = false;
-              }
-
-              if(!ret) {
-                try {
-                  ret = new Function("rec", "try { return " + arg0 + "} catch(e) {}");
-                } catch(ex) {}
-              }
-
-              cache[expr] = ret;
-            } else {
-              ret = cache[expr];
+                ret = new Function("rec", "try { return " + arg0 + "} catch(e) {}");
+              } catch(ex) {}
             }
           }
 
@@ -696,18 +683,8 @@ var bracket = (function(){
             ret = {};
             expr = arg1;
 
-            // See if we've seen this function before
-            if(!cache[expr]) {
-
-              // If we haven't, see if we can avoid an eval
-              if((canned = expr.match(regex)) !== null) {
-                cache[expr] = _compProto[canned[1]](canned[2].replace(/['"]$/, ''));
-              } else {      
-                // if not, fall back on it 
-                cache[expr] = new Function("x,rec", "try { return x " + expr + "} catch(e) {}");
-              }
-            } 
-            ret[arg0] = cache[expr];
+            // if not, fall back on it 
+            ret[arg0] = new Function("x,rec", "try { return x " + expr + "} catch(e) {}");
           }
 
           return ret;
@@ -804,7 +781,6 @@ var bracket = (function(){
         configurable: true,
         enumerable: false
       });
-      console.log(key, '=', value);
       mthis[key] = value;
     });
 
@@ -944,7 +920,6 @@ var bracket = (function(){
         });
       } else {
         each(this, function(ix, item) {
-          console.log('item', ix, item);
           if(key in item) {
             delete item[key];
           }
@@ -1133,11 +1108,14 @@ var bracket = (function(){
     where: function() {
       var args = slice.call(arguments || []);
 
-      // Addresses test 23 (Finding: Find all elements cascarded, 3 times)
+      // Addresses test 23 (Finding: Find all elements cascaded, 3 times)
       if(!_.isArr(this)) {
         args = [this].concat(args);
       }
+      console.log(args);
 
+      var ret = find.apply(this, args);
+      console.log(ret);
       return chain( find.apply(this, args) );
     },
 
@@ -1260,7 +1238,6 @@ var bracket = (function(){
     // data as a list of arguments, as an array, or as a single object.
     //
     insert: function(param) {
-      console.log(this, this instanceof bracket, this.constraints);
       var 
         mthis = this,
         ix,
@@ -1457,6 +1434,7 @@ var bracket = (function(){
     diff: setdiff,
     each: eachRun,
     not: not,
+    exec: expression(),
     like: like,
     trace: trace,
     values: values,

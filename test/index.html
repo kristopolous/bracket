@@ -730,8 +730,9 @@ module("Finding");
         { key2: 'value2' }, 
         { key1: 'value3' }
       ),
-      res = db.find(bracket('key1', '=== 0'));
+      res = db.find(bracket.exec('key1', '=== 0'));
 
+    self.db = db;
     equal(res.length, 1, "I got one record");
     equal(res[0].key1, 0, "It is the right one");
     equal(typeof res.find, 'function', "It looks to be chained");
