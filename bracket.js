@@ -26,7 +26,6 @@
 //    outward, plus a few other inline ones that don't get
 //    used internally.
 var bracket = (function(){
-
   var 
     // undefined
     _u,
@@ -34,11 +33,6 @@ var bracket = (function(){
     // prototypes and short cuts
     slice = Array.prototype.slice,  
     toString = Object.prototype.toString,
-
-    // system caches
-    _orderCache = {},
-
-    _compProto = {},
 
     // For computing set differences
     _stainID = 0,
@@ -197,14 +191,6 @@ var bracket = (function(){
 
     return ret;
   }
-
-  // We create basic comparator prototypes to avoid evals
-  each('< <= > >= == === != !=='.split(' '), function(which) {
-    _compProto[which] = Function(
-      'rhs',
-      'return function(x){return x' + which + 'rhs}'
-    )
-  });
 
   function trace(obj, cb) {
     obj.__trace__ = {};
@@ -391,7 +377,6 @@ var bracket = (function(){
         }
       } else {
         each(filter, function(key, value) {
-          console.log('filter', filter, set, arguments);
           // this permits mongo-like invocation
           if( _.isObj(value)) {
             var 
@@ -472,7 +457,6 @@ var bracket = (function(){
     var fieldList = hash(arg);
 
     return function(record) {
-      console.log(record, fieldList);
       for(var field in fieldList) {
         if(field in record) {
           return false;
@@ -487,57 +471,51 @@ var bracket = (function(){
   //
   // This is like the SQL "in" operator, which is a reserved JS word.  You can invoke it either
   // with a static array or a callback
-  var isin = (function() {
-    // It has a cache for optimization
-    var cache = {};
+  var isin = function (param1, param2) {
+    var 
+      callback,
+      len = arguments.length,
+      compare = len == 1 ? param1 : (param2 || []),
+      dynamicList = [],
+      staticList = [],
+      obj = {};
 
-    // todo: typecheck each element and then extract functions 
-    return function (param1, param2) {
-      var 
-        callback,
-        len = arguments.length,
-        compare = len == 1 ? param1 : (param2 || []),
-        dynamicList = [],
-        staticList = [],
-        obj = {};
-
-      // If the second argument is an array then we assume that we are looking
-      // to see if the value in the database is part of the user supplied funciton
-      if(!_.isArr(compare)) {
-        throw new TypeError("isin's argument is wrong. ", compare);
-      }
-      if(compare.length){
-        each(compare, function(what) {
-          if(_.isFun(what)) {
-            dynamicList.push(what);
-          } else {
-            staticList.push(what);
-          }
-        });
-
-        callback = function(x) { 
-          var res = indexOf(staticList, x) > -1; 
-          for(var ix = 0; ix < dynamicList.length; ix++) {
-            if(res) { break; }
-            res = dynamicList[ix](x);
-          }
-          return res;
-        };
-      } else if (_.isFun(compare)) {
-        callback = function(x) { return indexOf(compare(), x) > -1; };
-      } else {
-        callback = compare;
-      }
-
-      if(len == 2) {
-        obj = {};
-        obj[param1] = callback;
-        return obj;
-      } else {
-        return callback;
-      }
+    // If the second argument is an array then we assume that we are looking
+    // to see if the value in the database is part of the user supplied funciton
+    if(!_.isArr(compare)) {
+      throw new TypeError("isin's argument is wrong. ", compare);
     }
-  })();
+    if(compare.length){
+      each(compare, function(what) {
+        if(_.isFun(what)) {
+          dynamicList.push(what);
+        } else {
+          staticList.push(what);
+        }
+      });
+
+      callback = function(x) { 
+        var res = indexOf(staticList, x) > -1; 
+        for(var ix = 0; ix < dynamicList.length; ix++) {
+          if(res) { break; }
+          res = dynamicList[ix](x);
+        }
+        return res;
+      };
+    } else if (_.isFun(compare)) {
+      callback = function(x) { return indexOf(compare(), x) > -1; };
+    } else {
+      callback = compare;
+    }
+
+    if(len == 2) {
+      obj = {};
+      obj[param1] = callback;
+      return obj;
+    } else {
+      return callback;
+    }
+  }
 
   function isArray(what) {
     var asString = what.sort().join('');
@@ -640,60 +618,56 @@ var bracket = (function(){
     }
   }
 
-  var expression = (function(){
+  var expression = function (){
 
-    // A closure is needed here to avoid mangling pointers
-    return function (){
+    return function(arg0, arg1) {
+      var ret, expr;
 
-      return function(arg0, arg1) {
-        var ret, expr;
+      if(_.isStr( arg0 )) {
+        expr = arg0;
 
-        if(_.isStr( arg0 )) {
-          expr = arg0;
+        //
+        // There are TWO types of lambda function here (I'm not using the
+        // term 'closure' because that means something else)
+        //
+        // We can have one that is sensitive to a specific record member and 
+        // one that is local to a record and not a specific member.  
+        //
+        // As it turns out, we can derive the kind of function intended simply
+        // because they won't ever syntactically both be valid in real use cases.
+        //
+        // I mean sure, the empty string, space, semicolon etc is valid for both, 
+        // alright sure, thanks smarty pants.  But is that what you are using? really?
+        //
+        // No? ok, me either. This seems practical then.
+        //
+        // The invocation wrapping will also make this work magically, with proper
+        // expressive usage.
+        //
+        if(arguments.length == 1) {
+          try {
+            ret = new Function("x,rec", "try { return x " + expr + "} catch(e) {}");
+          } catch(ex) {}
 
-          //
-          // There are TWO types of lambda function here (I'm not using the
-          // term 'closure' because that means something else)
-          //
-          // We can have one that is sensitive to a specific record member and 
-          // one that is local to a record and not a specific member.  
-          //
-          // As it turns out, we can derive the kind of function intended simply
-          // because they won't ever syntactically both be valid in real use cases.
-          //
-          // I mean sure, the empty string, space, semicolon etc is valid for both, 
-          // alright sure, thanks smarty pants.  But is that what you are using? really?
-          //
-          // No? ok, me either. This seems practical then.
-          //
-          // The invocation wrapping will also make this work magically, with proper
-          // expressive usage.
-          //
-          if(arguments.length == 1) {
+          if(!ret) {
             try {
-              ret = new Function("x,rec", "try { return x " + expr + "} catch(e) {}");
+              ret = new Function("rec", "try { return " + arg0 + "} catch(e) {}");
             } catch(ex) {}
-
-            if(!ret) {
-              try {
-                ret = new Function("rec", "try { return " + arg0 + "} catch(e) {}");
-              } catch(ex) {}
-            }
           }
+        }
 
-          if(arguments.length == 2 && _.isStr(arg1)) {
-            ret = {};
-            expr = arg1;
+        if(arguments.length == 2 && _.isStr(arg1)) {
+          ret = {};
+          expr = arg1;
 
-            // if not, fall back on it 
-            ret[arg0] = new Function("x,rec", "try { return x " + expr + "} catch(e) {}");
-          }
+          // if not, fall back on it 
+          ret[arg0] = new Function("x,rec", "try { return x " + expr + "} catch(e) {}");
+        }
 
-          return ret;
-        } 
-      }
+        return ret;
+      } 
     }
-  })();
+  }
 
   function eachRun(callback, arg1) {
     var 
@@ -1119,7 +1093,6 @@ var bracket = (function(){
         args = [this].concat(args);
       }
 
-      console.log('here', this, _.isArr(this), args);
       return chain( find.apply(this, args) );
     },
 
