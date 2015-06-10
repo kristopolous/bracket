@@ -783,6 +783,11 @@ var bracket = (function(){
       });
       mthis[key] = value;
     });
+    Object.defineProperty(this, 'first', {
+      get: function(){
+        return this[0];
+      }
+    });
 
     // The ability to import a database from somewhere
     if (arguments.length == 1) {
@@ -1093,16 +1098,12 @@ var bracket = (function(){
         }
 
         if(_.isStr(order)) {
-          if(! _orderCache[order]) {
-            order = _orderCache[order] = new Function('x,y', 'return ' + order);
-          } else {
-            order = _orderCache[order];
-          }
+          order = new Function('x,y', 'return ' + order);
         }
 
         eval('fnSort=function(a,b){return order(a.' + key + ', b.' + key + ')}');
       }
-      return chain(this.sort(fnSort));
+      return chain(Array.prototype.sort.call(this,fnSort));
     },
 
     where: function() {
