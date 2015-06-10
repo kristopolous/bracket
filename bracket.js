@@ -391,6 +391,7 @@ var bracket = (function(){
         }
       } else {
         each(filter, function(key, value) {
+          console.log('filter', filter, set, arguments);
           // this permits mongo-like invocation
           if( _.isObj(value)) {
             var 
@@ -471,6 +472,7 @@ var bracket = (function(){
     var fieldList = hash(arg);
 
     return function(record) {
+      console.log(record, fieldList);
       for(var field in fieldList) {
         if(field in record) {
           return false;
@@ -727,7 +729,9 @@ var bracket = (function(){
   }
 
   function chain (list) {
-    return (new bracket()).concat(list);
+    var ret = (new bracket()).concat(list);
+    ret.chained = true;
+    return ret;
   }
 
   // see http://stackoverflow.com/questions/1606797/use-of-apply-with-new-operator-is-this-possible
@@ -761,6 +765,7 @@ var bracket = (function(){
 
     each({
       constraints: {addIf:[], unique: false},
+      chained: false,
       syncList: [],
       syncLock: false,
       length: 0,
@@ -963,7 +968,7 @@ var bracket = (function(){
     // Missing is to get records that have keys not defined
     missing: function() { 
       var base = missing(slice.call(arguments));
-      return this.find(base);
+      return this.chained ? this.find(base) : base;
     },
 
     // The callbacks in this list are called
@@ -1107,16 +1112,14 @@ var bracket = (function(){
     },
 
     where: function() {
-      var args = slice.call(arguments || []);
+      var args = slice.call(arguments);
 
       // Addresses test 23 (Finding: Find all elements cascaded, 3 times)
       if(!_.isArr(this)) {
         args = [this].concat(args);
       }
-      console.log(args);
 
-      var ret = find.apply(this, args);
-      console.log(ret);
+      console.log('here', this, _.isArr(this), args);
       return chain( find.apply(this, args) );
     },
 
