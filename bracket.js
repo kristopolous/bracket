@@ -945,8 +945,11 @@ var bracket = (function(){
 
     isin: isin,
     like: like,
+    invertArray: function(list, second) { 
+      return setdiff(second || this, list || this); 
+    },
     invert: function(list, second) { 
-      return chain(setdiff(second || this, list || this)); 
+      return chain(this.invertArray(list, second));
     },
 
     // Missing is to get records that have keys not defined
@@ -1359,12 +1362,19 @@ var bracket = (function(){
         list,
         save = [];
 
-      if(_.isArr(this)) { list = this; } 
-      else if(_.isArr(arg0)) { list = arg0; } 
+      if(_.isArr(this)) { 
+        list = this; 
+      } 
+      else if(_.isArr(arg0)) { 
+        list = arg0; 
+      } 
       else if(arguments.length > 0){ 
+        // This is the portion we will be saving via inverse
         save = this.find.apply(this, arguments);
+
         if(save.length) {
-          this.splice.apply(this, [0, this.length].concat(this.invert(save)));
+          
+          this.splice.apply(this, [0, this.length].concat(this.invertArray(save)));
           this._ix.del++;
           this.sync();
         }
