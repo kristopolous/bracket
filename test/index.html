@@ -1056,7 +1056,7 @@ module("FindFirst");
         { key2: 'value2' }, 
         { key1: 'value3' }
       ),
-      res = db.findFirst(bracket('key1', '=== 0'));
+      res = db.findFirst(bracket.exec('key1', '=== 0'));
 
     equal(res.key1, 0, "It is the right one");
   });

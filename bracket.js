@@ -978,6 +978,9 @@ var bracket = (function(){
       return this;
     },
 
+    //
+    // update
+    //
     // Update allows you to set newvalue to all
     // parameters matching constraint where constraint
     // is either a set of K/V pairs or a result
@@ -1119,7 +1122,8 @@ var bracket = (function(){
 
         eval( "keyer = function(r,ref){try{ref[rX] = update[rX] = r;} catch(x){}}".replace(/X/g, field));
       } else {
-        eval( "keyer = function(r,ref){with(r) { var val = X };try{ref[val] = update[val] = r;} catch(x){}}".replace(/X/g, field));
+        console.log( "keyer = function(r,ref){with(r) { var val = X };try{ref[val] = update[val] = r;} catch(x){}}".replace(/X/g, field));
+        eval( "keyer = function(r,ref){try{ with(r) { var val = X }; ref[val] = update[val] = r;} catch(x){}}".replace(/X/g, field));
       }
 
       function update(whence) {
