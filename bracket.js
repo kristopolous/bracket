@@ -1017,7 +1017,7 @@ var bracket = (function(){
     group: function(field) {
       var groupMap = {};
 
-      each(this, function(which) {
+      each(this, function(ix, which) {
         if(field in which) {
           each(which[field], function(what) {
             // if it's an array, then we do each one.

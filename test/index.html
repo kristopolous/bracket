@@ -1982,7 +1982,7 @@ module('group');
       { department: "IT", name: "Eve" }
     );
 
-    var toTest = db.find().group('department');
+    var toTest = db.group('department');
 
     equal(Object.keys(toTest).sort().join(' '), 'IT accounting', "Keys are right");
     equal(toTest.accounting.length, 2, "Accounting length is right");
