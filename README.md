@@ -245,7 +245,7 @@ Reading through the docs, Frederick finds that <a href=#template>Templates</a> c
       index = 0,
       our_copy = DB();
 
-    our_copy.template.create({id: (function(){ return index++; })});
+    our_copy.template_create({id: (function(){ return index++; })});
 
     our_copy.insert(spies_database);
 
@@ -503,7 +503,7 @@ The template itself is implicit and modal; applying to all insertions until it i
  
 <h5>Creation</h5>
 
-To create a template use `template.create( fields )`
+To create a template use `template_create( fields )`
 
 <h5>Update</h5>
 
@@ -511,11 +511,11 @@ Updating overwrite previous values as specified whilst retaining the old values 
 
 <h5>Getting</h5>
 
-You can get the current template with `template.get()`
+You can get the current template with `template_get()`
 
 <h5>Destroy</h5>
 
-You can destroy a template with `template.destroy()`
+You can destroy a template with `template_destroy()`
 
 <h3><a name=update> [chain] update( object | lambda | [ key, value ] )</a> [ <a href=#toc-inserting>top</a> ] </h3>
 Update allows you to set newvalue to all parameters matching a constraint.  
@@ -1075,7 +1075,7 @@ run, once, once, and once respectively.
 If you run sync with no arguments then it will not add an undefined to the function
 stack and then crash on an update; on the contrary, it will run the synchronization function stack; just as one would expect.
 
-<h3><a name=transaction> transaction.[ start | end ]() </a> [ <a href=#toc>top</a> ] </h3>
+<h3><a name=transaction> transaction_[ start | end ]() </a> [ <a href=#toc>top</a> ] </h3>
 
 This primitive function turns off all the synchronization callbacks after a start, and then restores them after a end, running them.
 
