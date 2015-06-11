@@ -156,11 +156,11 @@ module('transaction');
       counter++;
     });
 
-    db.transaction.start(); {
+    db.transaction_start(); {
       for(var i = 0; i < 10;i ++) {
         db.insert({k: i});
       }
-    } db.transaction.end(); 
+    } db.transaction_end(); 
  });
 
   test("Start a transaction, do 10 operations, end it, do 10 more", function(){
@@ -171,11 +171,11 @@ module('transaction');
       equal(true, true, "counting number of times run");
     });
 
-    db.transaction.start(); {
+    db.transaction_start(); {
       for(var i = 0; i < 10;i ++) {
         db.insert({k: i});
       }
-    } db.transaction.end(); 
+    } db.transaction_end(); 
 
     for(var i = 0; i < 10;i ++) {
       db.insert({k: i});
@@ -530,6 +530,7 @@ module("update");
       ),
       res = db.update({key4: 0});
 
+    self.db = db;
     equal(db[0].key4, 0, "Checks out");
     equal(db[1].key4, 0, "Checks out");
     equal(db[2].key4, 0, "Checks out");
@@ -811,7 +812,7 @@ module("Finding");
     equal(res[2].key, 3, "It is the right last");
   });
 
-  test("Find using the or operator", function(){
+  test("Find using the or operator - two keys", function(){
     var 
       db = bracket(
         {key: 1},
@@ -1536,6 +1537,7 @@ module('sync');
     equal(ran, true, 'Synchronization function ran');
     equal(data.length, 1, 'One item returned');
   });
+
   test("Update an element", function(){
     var 
       db = bracket({key: 0}),

@@ -32,6 +32,14 @@ var bracket = (function(){
 
     // prototypes and short cuts
     slice = Array.prototype.slice,  
+    arrify = function(arg) {
+      return map(
+        slice.call(arg), 
+        function(m) {
+          return slice.call(m);
+        }
+      );
+    },
     toString = Object.prototype.toString,
 
     // For computing set differences
@@ -314,6 +322,7 @@ var bracket = (function(){
       // The dataset to compare against
       set = copy(_.isArr(this) ? this : filterList.shift());
 
+    //console.log('start', set, this instanceof bracket, set instanceof bracket, _.isArr(set), _.isArr(this));
     if( filterList.length == 2 && _.isStr( filterList[0] )) {
       // This permits find(key, value)
       which = {};
@@ -351,11 +360,13 @@ var bracket = (function(){
           }
        
           for(ix = 0; ix < filter.length; ix++) {
+            console.log(ix, result, JSON.stringify(remaining), set);
             result = result.concat(find(remaining, filter[ix]));
             remaining = setdiff(remaining, result);
           }
 
           set = result;
+          console.log(set);
         }
       } else if(_.isFun(filter)) {
         var callback = filter;
@@ -564,7 +575,9 @@ var bracket = (function(){
   }
 
   function update(arg0, arg1) {
-    var key, filter = this;
+    var 
+      key, 
+      filter = this;
 
     // This permits update(key, value) on a chained find
     if( arg1 !== _u ) {
@@ -602,6 +615,7 @@ var bracket = (function(){
             if(_.isFun(which[key])) {
               which[key]( value );
             } else {
+              console.log("here", key, value, which);
               which[key] = value; 
             }
           });
@@ -714,25 +728,6 @@ var bracket = (function(){
     return new F();
   }
 
-  var _proto = {
-    transaction: {
-      start: function() {
-        this.syncLock = true;
-      },
-      end: function(){
-        // Have to turn the syncLock off prior to attempting it.
-        this.syncLock = false;
-        this.sync();
-      }
-    },
-    template: {
-      create: function(opt) { _template = opt; },
-      update: function(opt) { extend(_template || {}, opt); },
-      get: function() { return _template },
-      destroy: function() { _template = false }
-    },
-  };
-
   // --- START OF AN INSTANCE ----
   //
   // This is the Start of a bracket instance.
@@ -759,8 +754,6 @@ var bracket = (function(){
       syncList: [],
       syncLock: false,
       length: 0,
-      template: _proto.template,
-      transaction: _proto.transaction,
 
       //
       // This is our atomic counter that
@@ -774,9 +767,9 @@ var bracket = (function(){
       _g: {}
     }, function(key, value) {
       Object.defineProperty(mthis, key, {
+        value: value,
         writable: true,
         configurable: true,
-        value: value,
         enumerable: false
       });
     });
@@ -803,8 +796,22 @@ var bracket = (function(){
   bracket.prototype = Object.create(Array.prototype);
   bracket.constructor = bracket;
 
+  each({
 
-  extend(bracket.prototype, {
+    transaction_start: function() {
+      this.syncLock = true;
+    },
+    transaction_end: function(){
+      console.log('HHHHHH', this instanceof bracket);
+      // Have to turn the syncLock off prior to attempting it.
+      this.syncLock = false;
+      this.sync();
+    },
+
+    template_create: function(opt) { this._template = opt; },
+    template_update: function(opt) { extend(this._template || {}, opt); },
+    template_get: function() { return this._template },
+    template_destroy: function() { this._template = false },
 
     // See the interesting 1-person discussion with myself here:
     // http://stackoverflow.com/questions/30741140/can-javascript-do-polymorphic-duck-typing-for-arrays-see-details
@@ -822,10 +829,10 @@ var bracket = (function(){
           [0, 0],
 
           // with our object as an array
-          Array.prototype.slice.call(this).concat(
+          slice.call(this).concat(
 
             // added to the arguments, as an array
-            Array.prototype.slice.call(arguments) 
+            arrify(arguments) 
           )
         ) 
       );
@@ -1412,14 +1419,24 @@ var bracket = (function(){
         this.sync();
       }
       return chain(save.reverse());
-    }
+    },
+  }, function(key, value) {
+    Object.defineProperty(bracket.prototype, key, {
+      value: value,
+      configurable: true,
+      writable: true
+    });
   });
-
-  // aliases have to be assigned in a second pass.
-  extend(bracket.prototype, {
+  each({
     sort: bracket.prototype.order,
     orderBy: bracket.prototype.sort,
     find: bracket.prototype.where
+  }, function(key, value) {
+    Object.defineProperty(bracket.prototype, key, {
+      value: value,
+      configurable: true,
+      writable: true
+    });
   });
 
   extend(bracket, {
