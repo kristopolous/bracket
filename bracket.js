@@ -1132,7 +1132,6 @@ var bracket = (function(){
 
         eval( "keyer = function(r,ref){try{ref[rX] = update[rX] = r;} catch(x){}}".replace(/X/g, field));
       } else {
-        console.log( "keyer = function(r,ref){with(r) { var val = X };try{ref[val] = update[val] = r;} catch(x){}}".replace(/X/g, field));
         eval( "keyer = function(r,ref){try{ with(r) { var val = X }; ref[val] = update[val] = r;} catch(x){}}".replace(/X/g, field));
       }
 
@@ -1150,7 +1149,7 @@ var bracket = (function(){
 
         var ref = {};
 
-        each(mthis, function(row) {
+        each(mthis, function(ix, row) {
           keyer(row, ref);
         });
 
