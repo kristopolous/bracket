@@ -1838,6 +1838,7 @@ module('each');
     var res = db.find().select('key').each(function(what) {
       return what;
     });
+    console.log(res);
 
     equal(res.join(','), 'false,7,2', "The right data came back");
   });

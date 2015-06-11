@@ -714,6 +714,25 @@ var bracket = (function(){
     return new F();
   }
 
+  var _proto = {
+    transaction: {
+      start: function() {
+        this.syncLock = true;
+      },
+      end: function(){
+        // Have to turn the syncLock off prior to attempting it.
+        this.syncLock = false;
+        this.sync();
+      }
+    },
+    template: {
+      create: function(opt) { _template = opt; },
+      update: function(opt) { extend(_template || {}, opt); },
+      get: function() { return _template },
+      destroy: function() { _template = false }
+    },
+  };
+
   // --- START OF AN INSTANCE ----
   //
   // This is the Start of a bracket instance.
@@ -740,6 +759,8 @@ var bracket = (function(){
       syncList: [],
       syncLock: false,
       length: 0,
+      template: _proto.template,
+      transaction: _proto.transaction,
 
       //
       // This is our atomic counter that
@@ -755,10 +776,11 @@ var bracket = (function(){
       Object.defineProperty(mthis, key, {
         writable: true,
         configurable: true,
+        value: value,
         enumerable: false
       });
-      mthis[key] = value;
     });
+
     Object.defineProperty(this, 'first', {
       get: function(){
         return this[0];
@@ -780,6 +802,7 @@ var bracket = (function(){
 
   bracket.prototype = Object.create(Array.prototype);
   bracket.constructor = bracket;
+
 
   extend(bracket.prototype, {
 
@@ -822,16 +845,6 @@ var bracket = (function(){
       return ret;
     },
 
-    transaction: {
-      start: function() {
-        this.syncLock = true;
-      },
-      end: function(){
-        // Have to turn the syncLock off prior to attempting it.
-        this.syncLock = false;
-        this.sync();
-      }
-    },
 
     // This isn't a true schema derivation ... it's a spot check
     // over the data-set to try to show a general schema ... since
@@ -963,13 +976,6 @@ var bracket = (function(){
         }
       }
       return this;
-    },
-
-    template: {
-      create: function(opt) { _template = opt; },
-      update: function(opt) { extend(_template || {}, opt); },
-      get: function() { return _template },
-      destroy: function() { _template = false }
     },
 
     // Update allows you to set newvalue to all
