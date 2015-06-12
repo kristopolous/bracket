@@ -51,6 +51,7 @@ var bracket = (function(){
     _ = {
       // from underscore.js {
       isFun: function(obj) { return !!(obj && obj.constructor && obj.call && obj.apply) },
+      isBrk: function(obj) { return obj instanceof bracket },
       isStr: function(obj) { return !!(obj === '' || (obj && obj.charCodeAt && obj.substr)) },
       isNum: function(obj) { return toString.call(obj) === '[object Number]' },
       isArr: [].isArray || function(obj) { return toString.call(obj) === '[object Array]' },
@@ -807,6 +808,14 @@ var bracket = (function(){
     template_get: function() { return this._template },
     template_destroy: function() { this._template = false },
 
+    reverse: function() {
+      // We start with a new instance of our own object, myArray
+      var ret = new bracket();
+      console.log(ret, [0, 0, Array.prototype.reverse.apply(this)]);
+      ret.splice.apply(ret, [0, 0, Array.prototype.reverse.apply(this)]);
+      return ret;
+    },
+
     // See the interesting 1-person discussion with myself here:
     // http://stackoverflow.com/questions/30741140/can-javascript-do-polymorphic-duck-typing-for-arrays-see-details
     concat: function() {
@@ -967,19 +976,15 @@ var bracket = (function(){
     // definition of the sync function, which does the
     // actual synchronization
     sync: function(callback) { 
-      console.log(callback, arguments.length);
       var mthis = this;
       if(callback) {
         this.syncList.push(callback);
       } else { 
         if(!this.syncLock) {
           this.syncLock = true;
-          console.log(mthis, mthis._dbIx, this.syncList);
           each(this.syncList, function(which) { 
-            console.log(which, mthis);
             which.call(mthis, mthis); 
           });
-          console.log(this.chained);
           this._bubble('sync');
           this.syncLock = false;
         }
@@ -1059,14 +1064,15 @@ var bracket = (function(){
 
     _bubble: function(cb, args) {
       if(this.chained) {
-        console.log(this.chained[cb]);//.call(this.chained, args || []);
-        this.chained[cb].apply(this.chained, args || []);
+        console.log('here', cb, this.chained, args);
+        return this.chained[cb].apply(this.chained, args || []);
       }
+      return _stainKey;
     },
 
     _chain: function(list) {
       var ret = (new bracket()).concat(list);
-      ret.chained = this;
+      ret.chained = this.chained || this;
       return ret;
     },
 
@@ -1367,6 +1373,10 @@ var bracket = (function(){
       this.splice.apply(this, [0,0].concat(list));
     },
 
+    a: function(){
+      return slice.call(this);
+    },
+
     //
     // remove
     // 
@@ -1377,14 +1387,12 @@ var bracket = (function(){
       var 
         isDirty = false,
         end, start,
-        list,
+        masterList = this.chained || this,
+        toRemove = this,
         save = [];
 
-      if(_.isArr(this)) { 
-        list = this; 
-      } 
-      else if(_.isArr(arg0)) { 
-        list = arg0; 
+      if(_.isArr(arg0)) { 
+        toRemove = arg0; 
       } 
       else if(arguments.length > 0){ 
         // This is the portion we will be saving via inverse
@@ -1399,19 +1407,17 @@ var bracket = (function(){
         return this._chain(save.reverse());
       } 
 
-      else { list = this.find(); }
+      stain(toRemove);
 
-      stain(list);
-
-      for(var ix = this.length - 1, end = this.length; ix >= 0; ix--) {
-        if (isStained(this[ix])) { 
-          unstain(this[ix]);
-          save.push(this[ix]);
+      for(var ix = masterList.length - 1, end = masterList.length; ix >= 0; ix--) {
+        if (isStained(masterList[ix])) { 
+          unstain(masterList[ix]);
+          save.push(masterList[ix]);
           continue;
         }
         if(end - (ix + 1)) {
           start = ix + 1;
-          this.splice(start, end - start);
+          masterList.splice(start, end - start);
           isDirty = true;
         }
         end = ix;
@@ -1419,15 +1425,15 @@ var bracket = (function(){
 
       start = ix + 1;
       if(end - start) {
-        this.splice(start, end - start);
+        masterList.splice(start, end - start);
         isDirty = true;
       }
 
       if(isDirty) {
         // If we've spliced, then we sync and update our
         // atomic delete counter
-        this._ix.del++;
-        this.sync();
+        masterList._ix.del++;
+        masterList.sync();
       }
       return this._chain(save.reverse());
     },

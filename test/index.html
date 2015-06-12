@@ -1537,6 +1537,7 @@ module('sync');
     db.find({key: 0}).remove();
 
     equal(ran, true, 'Synchronization function ran');
+    equal(db.length, 1, 'One item left');
     equal(data.length, 1, 'One item returned');
   });
 
