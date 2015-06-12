@@ -410,8 +410,10 @@ module("Removal");
       res,
       ix = 0;
 
+    self.db = db;
     for(ix = 0; ix < 10; ix ++) {
       db.insert( db.remove({key1: 'value3'}) );
+      console.log(db.length);
     }
 
     equal(db.length, 3, "There's three elements");

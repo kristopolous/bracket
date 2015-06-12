@@ -362,13 +362,13 @@ var bracket = (function(){
           }
        
           for(ix = 0; ix < filter.length; ix++) {
-            console.log(ix, result, JSON.stringify(remaining), set);
+            // console.log(ix, result, JSON.stringify(remaining), set);
             result = result.concat(find(remaining, filter[ix]));
             remaining = setdiff(remaining, result);
           }
 
           set = result;
-          console.log(set);
+          // console.log(set);
         }
       } else if(_.isFun(filter)) {
         var callback = filter;
@@ -811,8 +811,8 @@ var bracket = (function(){
     reverse: function() {
       // We start with a new instance of our own object, myArray
       var ret = new bracket();
-      console.log(ret, [0, 0, Array.prototype.reverse.apply(this)]);
-      ret.splice.apply(ret, [0, 0, Array.prototype.reverse.apply(this)]);
+      // console.log(ret, [0, 0, Array.prototype.reverse.apply(this)]);
+      ret.splice.apply(ret, [0, 0].concat(slice.call(this).reverse()));
       return ret;
     },
 
@@ -1064,7 +1064,7 @@ var bracket = (function(){
 
     _bubble: function(cb, args) {
       if(this.chained) {
-        console.log('here', cb, this.chained, args);
+        // console.log('here', cb, this.chained, args);
         return this.chained[cb].apply(this.chained, args || []);
       }
       return _stainKey;
@@ -1271,6 +1271,8 @@ var bracket = (function(){
 
         // otherwise it's one argument and 
         // we just insert that alone.
+      } else if (_.isBrk(param)) {
+        toInsert = slice.call(param);
       } else {
         toInsert = [param];
       } 
@@ -1404,7 +1406,8 @@ var bracket = (function(){
           this._ix.del++;
           this.sync();
         }
-        return this._chain(save.reverse());
+        console.log(save, save.a(), save.reverse().a());
+        return save.reverse();
       } 
 
       stain(toRemove);
