@@ -1007,7 +1007,6 @@ var bracket = (function(){
     //
     update: function() {
       var list = update.apply(this, arguments);
-      console.log(list);
       this.sync();
       return list;
     },
@@ -1407,7 +1406,6 @@ var bracket = (function(){
           this._ix.del++;
           this.sync();
         }
-        console.log(save, save.a(), save.reverse().a());
         return save.reverse();
       } 
 

@@ -1532,7 +1532,6 @@ module('sync');
       
     db.sync(function(raw) {
       ran = true;
-      console.log('here', raw);
       data = raw;
     });
 
@@ -1797,7 +1796,6 @@ module('each');
     ]);
 
     db.each(function(what) {
-      console.log(what);
       equal(!([5,3,7,2].indexOf(what.key) + 1), false, "The function is run");
     });
   });
