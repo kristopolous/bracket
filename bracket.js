@@ -45,6 +45,7 @@ var bracket = (function(){
     // For computing set differences
     _stainID = 0,
     _stainKey = '_4ab92bf03191c585f182',
+    _dbIx = 0,
 
     // type checking system
     _ = {
@@ -615,7 +616,6 @@ var bracket = (function(){
             if(_.isFun(which[key])) {
               which[key]( value );
             } else {
-              console.log("here", key, value, which);
               which[key] = value; 
             }
           });
@@ -743,6 +743,7 @@ var bracket = (function(){
     var mthis = this;
 
     each({
+      _dbIx: _dbIx++,
       chained: false,
       syncList: [],
       length: 0,
@@ -796,7 +797,6 @@ var bracket = (function(){
       this.syncLock = true;
     },
     transaction_end: function(){
-      console.log('HHHHHH', this instanceof bracket);
       // Have to turn the syncLock off prior to attempting it.
       this.syncLock = false;
       this.sync();
@@ -947,7 +947,6 @@ var bracket = (function(){
     isin: isin,
     like: like,
     invertArray: function(list, second) { 
-      console.log(this, this.chained);
       return setdiff(second || this.chained || this, list || this); 
     },
     invert: function(list, second) { 
@@ -968,15 +967,20 @@ var bracket = (function(){
     // definition of the sync function, which does the
     // actual synchronization
     sync: function(callback) { 
+      console.log(callback, arguments.length);
+      var mthis = this;
       if(callback) {
         this.syncList.push(callback);
       } else { 
         if(!this.syncLock) {
           this.syncLock = true;
-          var mthis = this;
+          console.log(mthis, mthis._dbIx, this.syncList);
           each(this.syncList, function(which) { 
+            console.log(which, mthis);
             which.call(mthis, mthis); 
           });
+          console.log(this.chained);
+          this._bubble('sync');
           this.syncLock = false;
         }
       }
@@ -1051,6 +1055,13 @@ var bracket = (function(){
     indexBy: function () {
       // set the order output to the raw
       this.splice.apply(this, [0,0].concat(this.order.apply(this, arguments)));
+    },
+
+    _bubble: function(cb, args) {
+      if(this.chained) {
+        console.log(this.chained[cb]);//.call(this.chained, args || []);
+        this.chained[cb].apply(this.chained, args || []);
+      }
     },
 
     _chain: function(list) {
@@ -1344,7 +1355,7 @@ var bracket = (function(){
       });
 
       this.sync();
-
+     
       return this;
     },
 

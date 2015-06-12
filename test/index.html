@@ -1530,6 +1530,7 @@ module('sync');
       
     db.sync(function(raw) {
       ran = true;
+      console.log('here', raw);
       data = raw;
     });
 
