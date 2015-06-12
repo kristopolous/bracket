@@ -613,7 +613,7 @@ var bracket = (function(){
           });
         } else {
           // otherwise, assign the static 
-          each(filter, function(which) { 
+          each(filter, function(ix, which) { 
             if(_.isFun(which[key])) {
               which[key]( value );
             } else {
@@ -624,7 +624,7 @@ var bracket = (function(){
       });
     }
 
-    return this;
+    return filter;
   }
 
   function not( lambda ) {
@@ -1007,6 +1007,7 @@ var bracket = (function(){
     //
     update: function() {
       var list = update.apply(this, arguments);
+      console.log(list);
       this.sync();
       return list;
     },
