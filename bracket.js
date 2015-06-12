@@ -713,12 +713,6 @@ var bracket = (function(){
     return ret;
   }
 
-  function chain (list) {
-    var ret = (new bracket()).concat(list);
-    ret.chained = true;
-    return ret;
-  }
-
   // see http://stackoverflow.com/questions/1606797/use-of-apply-with-new-operator-is-this-possible
   function construct(constructor, args) {
     function F() {
@@ -953,10 +947,11 @@ var bracket = (function(){
     isin: isin,
     like: like,
     invertArray: function(list, second) { 
-      return setdiff(second || this, list || this); 
+      console.log(this, this.chained);
+      return setdiff(second || this.chained || this, list || this); 
     },
     invert: function(list, second) { 
-      return chain(this.invertArray(list, second));
+      return this._chain(this.invertArray(list, second));
     },
 
     // Missing is to get records that have keys not defined
@@ -1015,7 +1010,7 @@ var bracket = (function(){
     // of the rows that match that value.
     //
     group: function(field) {
-      var groupMap = {};
+      var groupMap = {}, mthis = this;
 
       each(this, function(ix, which) {
         if(field in which) {
@@ -1023,7 +1018,7 @@ var bracket = (function(){
             // if it's an array, then we do each one.
 
             if(! (what in groupMap) ) {
-              groupMap[what] = chain([]);
+              groupMap[what] = mthis._chain([]);
             }
 
             groupMap[what].push(which);
@@ -1056,6 +1051,12 @@ var bracket = (function(){
     indexBy: function () {
       // set the order output to the raw
       this.splice.apply(this, [0,0].concat(this.order.apply(this, arguments)));
+    },
+
+    _chain: function(list) {
+      var ret = (new bracket()).concat(list);
+      ret.chained = this;
+      return ret;
     },
 
     //
@@ -1098,7 +1099,7 @@ var bracket = (function(){
 
         eval('fnSort=function(a,b){return order(a.' + key + ', b.' + key + ')}');
       }
-      return chain(Array.prototype.sort.call(this,fnSort));
+      return this._chain(Array.prototype.sort.call(this,fnSort));
     },
 
     where: function() {
@@ -1109,7 +1110,7 @@ var bracket = (function(){
         args = [this].concat(args);
       }
 
-      return chain( find.apply(this, args) );
+      return this._chain( find.apply(this, args) );
     },
 
     //
@@ -1221,7 +1222,7 @@ var bracket = (function(){
         }
       });
       
-      return chain(values(resultList));
+      return this._chain(values(resultList));
     },
 
     // 
@@ -1384,7 +1385,7 @@ var bracket = (function(){
           this._ix.del++;
           this.sync();
         }
-        return chain(save.reverse());
+        return this._chain(save.reverse());
       } 
 
       else { list = this.find(); }
@@ -1417,7 +1418,7 @@ var bracket = (function(){
         this._ix.del++;
         this.sync();
       }
-      return chain(save.reverse());
+      return this._chain(save.reverse());
     },
   }, function(key, value) {
     Object.defineProperty(bracket.prototype, key, {

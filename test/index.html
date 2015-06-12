@@ -1472,6 +1472,7 @@ module('invert');
       ),
       res = db.find({key1: 0}).invert();
 
+    self.db = db;
     equal(res.length, 2, "I got two records");
     equal(res[0].key2, 'value2', "It is the right one");
     equal(typeof res.find, 'function', "It looks to be chained");
