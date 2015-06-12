@@ -698,7 +698,7 @@ var bracket = (function(){
       callback = callback[1];
     }
 
-    if(_.isArr(filter)) {
+    if((this instanceof bracket) || _.isArr(filter)) {
       ret = mapSoft(filter, callback);
     } else {
       ret = {};

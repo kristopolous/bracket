@@ -1836,7 +1836,7 @@ module('each');
       {key: 2}
     ]);
 
-    var res = db.find().select('key').each(function(what) {
+    var res = db.select('key').each(function(what) {
       return what;
     });
     console.log(res);
@@ -1906,7 +1906,7 @@ module('order');
     // increment the existing entries by ins.length which
     // are past $start
     db 
-      .find({id: bracket('> ' + start)})
+      .find({id: bracket.exec('> ' + start)})
       .update(function(e){ e.id += ins.length });
 
     // insert our post records and give it the gap
@@ -1916,7 +1916,7 @@ module('order');
     });
 
     // Try to sort the new db by the key, ascending
-    var validate = db.find().sort('id', 'asc');
+    var validate = db.sort('id', 'asc');
 
     // we start at 1 for a relative comparator
     for(ix = 1; ix < validate.length; ix++) {
