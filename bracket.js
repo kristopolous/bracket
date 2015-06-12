@@ -603,7 +603,7 @@ var bracket = (function(){
           // take each item from the filter (filtered results)
           // and then apply the value function to it, storing
           // back the results
-          each(filter, function(which) { 
+          each(filter, function(ix, which) { 
             if(_.isFun(which[key])) {
 
               which[key]( value(which) );
