@@ -594,7 +594,12 @@ var bracket = (function(){
     }
 
     if(_.isFun(arg0)) {
-      each(filter, arg0);
+      // The JS each has a first arg as a record number.
+      // I think this is a pretty useless call-style since
+      // in our case it's always incrementing.
+      each(filter, function(ix, record) {
+        arg0(record);
+      });
     } else {
       // {a: blah, b: blah}
       each(arg0, function(key, value) {
