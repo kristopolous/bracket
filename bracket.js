@@ -749,11 +749,12 @@ var bracket = (function(){
     var mthis = this;
 
     each({
-      constraints: {addIf:[], unique: false},
       chained: false,
       syncList: [],
-      syncLock: false,
       length: 0,
+      syncLock: false,
+      _template: false,
+      constraints: {addIf:[], unique: false},
 
       //
       // This is our atomic counter that
@@ -761,7 +762,6 @@ var bracket = (function(){
       // operations
       //
       _ix: {ins:0, del:0},
-      _template: false,
 
       // globals with respect to this self.
       _g: {}
@@ -1426,6 +1426,7 @@ var bracket = (function(){
       writable: true
     });
   });
+
   each({
     sort: bracket.prototype.order,
     orderBy: bracket.prototype.sort,
@@ -1460,9 +1461,11 @@ var bracket = (function(){
 
     // expensive basic full depth copying.
     copy: function(data) {
-      return map(data, function(what) {
+      var ret = (map(data, function(what) {
         return copy(what);
-      });
+      }));
+      ret.length = data.length;
+      return slice.call(ret);
     },
 
     objectify: function(keyList, values) {
