@@ -850,7 +850,7 @@ var bracket = (function(){
       return ret;
     },
 
-    list2data: function (list) {
+    index2data: function (list) {
       var ret = [];
 
       for(var ix = 0, len = list.length; ix < len; ix++) {
@@ -1069,7 +1069,7 @@ var bracket = (function(){
 
     _bubble: function(cb, args) {
       if(this.chained) {
-        // console.log('here', cb, this.chained, args);
+        console.log('here', cb, this.chained, args);
         return this.chained[cb].apply(this.chained, args || []);
       }
       return _stainKey;
@@ -1255,9 +1255,9 @@ var bracket = (function(){
     //
     insert: function(param) {
       var 
-        mthis = this,
+        mthis = this.chained || this,
         ix,
-        unique = this.constraints.unique,
+        unique = mthis.constraints.unique,
         existing = [],
         toInsert = [],
         ixList = [];
@@ -1367,9 +1367,9 @@ var bracket = (function(){
         ixList.push(ix);
       });
 
-      this.sync();
+      mthis.sync();
      
-      return this;
+      return mthis._chain(mthis.index2data(ixList));
     },
 
     // 
