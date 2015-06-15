@@ -242,7 +242,6 @@ var bracket = (function(){
     return ret;
   }
 
-
   // 
   // "Staining" is my own crackpot algorithm of comparing
   // two unsorted lists of pointers that reference shared
@@ -317,13 +316,9 @@ var bracket = (function(){
       which,
       val,
 
-      // The indices
-      end,
-      spliceix,
-      ix,
-
+      filterComp,
       // The dataset to compare against
-      set = (_.isBrk(this) ? this : filterList.shift());
+      set = _.isBrk(this) ? this : filterList.shift();
 
     if( filterList.length == 2 && _.isStr( filterList[0] )) {
       // This permits find(key, value)
@@ -338,8 +333,6 @@ var bracket = (function(){
       // If we are looking at an array, then this acts as an OR, which means
       // that we just recursively do this.
       if(_.isArr(filter)) {
-
-        var filterComp;
 
         // this style is 
         // ([key1, key2, key3], rhs)
@@ -397,9 +390,7 @@ var bracket = (function(){
           }
 
           if( _.isFun(value)) {
-            for(end = set.length, ix = end - 1; ix >= 0; ix--) {
-              which = set[ix];
-
+            filterComp = function(which) {
               // Check for existence
               if( key in which ) {
                 val = which[key];
@@ -407,32 +398,20 @@ var bracket = (function(){
                 // Permit mutator events
                 if( _.isFun(val) ) { val = val(); }
 
-                if( ! value(val, which) ) { continue }
-
-                if(end - (ix + 1)) {
-                  spliceix = ix + 1;
-                  set.splice(spliceix, end - spliceix);
-                }
-
-                end = ix;
+                return value(val, which);
               }
             }
-
           } else {
-            set = set.filter(function(which) {
-              var val = which[key];
+            filterComp = function(which) {
+              val = which[key];
 
               if( _.isFun(val) ) { val = val(); }
 
               // Check for existence
               return (key in which && val === value );
-            });
+            };
           }
-
-          spliceix = ix + 1;
-          if(end - spliceix) {
-            set.splice(spliceix, end - spliceix);
-          }
+          set = bracket.prototype.filter.call(set, filterComp);
         });
       }
     }
@@ -672,12 +651,14 @@ var bracket = (function(){
       // make a truth condition from this.
       // We're getting things like {a: b} etc
     } else if (_.isObj( arg0 )) {
+
       return function(rec) {
-        var ret = true;
         for(var key in arg0) {
-          ret &= equal(rec[key], arg0[key]);
+          if(!equal(rec[key], arg0[key])) {
+            return false;
+          }
         }
-        return ret;
+        return true;
       }
     }
   }
