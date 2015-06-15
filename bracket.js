@@ -323,7 +323,7 @@ var bracket = (function(){
       ix,
 
       // The dataset to compare against
-      set = copy(_.isBrk(this) ? this : filterList.shift());
+      set = (_.isBrk(this) ? this : filterList.shift());
 
     if( filterList.length == 2 && _.isStr( filterList[0] )) {
       // This permits find(key, value)
@@ -392,7 +392,7 @@ var bracket = (function(){
               throw new Error(_fn + " is an unknown function");
             }
           } else if( _.isArr(value)) {
-          // a convenience isin short-hand.
+            // a convenience isin short-hand.
             value = isin(value);
           }
 
@@ -419,24 +419,14 @@ var bracket = (function(){
             }
 
           } else {
-            for(end = set.length, ix = end - 1; ix >= 0; ix--) {
-              which = set[ix];
-
-              val = which[key];
+            set = set.filter(function(which) {
+              var val = which[key];
 
               if( _.isFun(val) ) { val = val(); }
 
               // Check for existence
-              if( ! (key in which && val === value ) ) {
-                continue;
-              }
-
-              if(end - (ix + 1)) {
-                spliceix = ix + 1;
-                set.splice(spliceix, end - spliceix);
-              }
-              end = ix;
-            }
+              return (key in which && val === value );
+            });
           }
 
           spliceix = ix + 1;
