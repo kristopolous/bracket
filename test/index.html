@@ -1997,6 +1997,32 @@ module('group');
     equal(toTest[1].length, 2, "Accounting length is right");
   });
 });
+
+test("perf", function(){
+  var m = bracket();
+
+  for(var ix = 0; ix < 30000; ix++) {
+    m.push({key: Math.floor(Math.random() * 10)});
+  }
+  
+  var fun, start, end, resFilter, resSplice, spliceTtl = 0, filterTtl = 0, ts;
+  for(var ix = 0; ix < 10; ix++) {
+    fun = bracket.exec('key', '>' + ix);
+
+    start = +new Date();
+    resSplice = m.find(fun);
+    ts = (+new Date()) - start;
+    spliceTtl += ts;
+
+    start = +new Date();
+    resFilter = m.filter(fun);
+    ts = (+new Date()) - start;
+    filterTtl += ts;
+    console.log(resSplice.length == resFilter.length);
+  }
+  console.log(spliceTtl, filterTtl); 
+  equal(1,1);
+});
 </script>
 
 

@@ -323,9 +323,8 @@ var bracket = (function(){
       ix,
 
       // The dataset to compare against
-      set = copy(_.isArr(this) ? this : filterList.shift());
+      set = copy(_.isBrk(this) ? this : filterList.shift());
 
-    //console.log('start', set, this instanceof bracket, set instanceof bracket, _.isArr(set), _.isArr(this));
     if( filterList.length == 2 && _.isStr( filterList[0] )) {
       // This permits find(key, value)
       which = {};
@@ -361,13 +360,12 @@ var bracket = (function(){
               }
             }
           }]
-          self.comp = filterComp;
         } else {
           filterComp = map(filter, expression);
-          console.log(filterComp);
         }
         
         set = bracket.prototype.filter.call(set, function(row) {
+          // this satisfies the base case.
           var ret = true;
           for (var ix = 0; ix < filterComp.length; ix++) {
             if(filterComp[ix](row)) {
@@ -378,23 +376,7 @@ var bracket = (function(){
           return ret;
         });
       } else if(_.isFun(filter)) {
-        var callback = filter;
-
-        for(end = set.length, ix = end - 1; ix >= 0; ix--) {
-          which = set[ix];
-          if(!callback(which)) { continue }
-
-          if(end - (ix + 1)) {
-            spliceix = ix + 1;
-            set.splice(spliceix, end - spliceix);
-          }
-          end = ix;
-        }
-
-        spliceix = ix + 1;
-        if(end - spliceix) {
-          set.splice(spliceix, end - spliceix);
-        }
+        set = set.filter(filter);
       } else {
         each(filter, function(key, value) {
           // this permits mongo-like invocation
@@ -679,8 +661,8 @@ var bracket = (function(){
       //
 
       if(arguments.length == 2 && _.isStr(arg1)) {
-        ret = {};
         expr = arg1;
+        ret = new Function("x,rec", "try { return x." + arg0 + expr + "} catch(e) {}");
 
         // if not, fall back on it 
         ret[arg0] = new Function("x,rec", "try { return x " + expr + "} catch(e) {}");
@@ -840,7 +822,6 @@ var bracket = (function(){
     reverse: function() {
       // We start with a new instance of our own object, myArray
       var ret = new bracket();
-      // console.log(ret, [0, 0, Array.prototype.reverse.apply(this)]);
       ret.splice.apply(ret, [0, 0].concat(slice.call(this).reverse()));
       return ret;
     },
@@ -1148,9 +1129,9 @@ var bracket = (function(){
       var args = slice.call(arguments);
 
       // Addresses test 23 (Finding: Find all elements cascaded, 3 times)
-      if(!_.isArr(this)) {
+      if(!_.isBrk(this)) {
         args = [this].concat(args);
-      }
+      } 
 
       return this._chain( find.apply(this, args) );
     },
@@ -1424,11 +1405,6 @@ var bracket = (function(){
           if (i in t) {
             var val = t[i];
 
-            // NOTE: Technically this should Object.defineProperty at
-            //       the next index, as push can be affected by
-            //       properties on Object.prototype and Array.prototype.
-            //       But that method's new, and collisions should be
-            //       rare, so use the more-compatible alternative.
             if (fun.call(thisArg, val, i, t)) {
               res.push(val);
             }
