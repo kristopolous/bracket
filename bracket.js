@@ -335,7 +335,7 @@ var bracket = (function(){
     for(filterIx = 0; filterIx < filterList.length; filterIx++) {
       filter = filterList[filterIx];
 
-      // if we are looking at an array, then this acts as an OR, which means
+      // If we are looking at an array, then this acts as an OR, which means
       // that we just recursively do this.
       if(_.isArr(filter)) {
         // If we just pass the inner array, this would be wrong because
@@ -361,6 +361,7 @@ var bracket = (function(){
             });
           }
        
+          console.log(filter);
           for(ix = 0; ix < filter.length; ix++) {
             // console.log(ix, result, JSON.stringify(remaining), set);
             result = result.concat(find(remaining, filter[ix]));
@@ -530,6 +531,14 @@ var bracket = (function(){
     }
   }
 
+  function equal(lhs, rhs) {
+    return (lhs === rhs) || (
+        (lhs.join && rhs.join) &&
+        (lhs.sort().toString() === rhs.sort().toString())
+      ) || 
+      (JSON.stringify(lhs) === JSON.stringify(rhs));
+  }
+
   function isArray(what) {
     var asString = what.sort().join('');
     return function(param) {
@@ -683,7 +692,17 @@ var bracket = (function(){
       }
 
       return ret;
-    } 
+      // make a truth condition from this.
+      // We're getting things like {a: b} etc
+    } else if (_.isObj( arg0 )) {
+      return function(rec) {
+        var ret = true;
+        for(var key in arg0) {
+          ret &= equal(rec[key], arg0[key]);
+        }
+        return ret;
+      }
+    }
   }
 
   function eachRun(callback, arg1) {

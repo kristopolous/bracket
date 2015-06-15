@@ -563,6 +563,7 @@ module("update");
   });
 
   test("Add a Key/Value pair by keyed Function with global variables", function(){
+    self.i = 0;
     var 
       db = bracket({}, {}, {}, {}),
       res = db.update({a: bracket('i++')});
@@ -572,6 +573,7 @@ module("update");
     equal(db[2].a, 2, "Checks out");
     equal(db[3].a, 3, "Checks out");
 
+    self.i = 0xBADC0DE;
   });
 
   test("Add a Key/Value pair by keyed Function with local variables", function(){
@@ -814,6 +816,7 @@ module("Finding");
       ),
       res = db.find([{key: 1}, {key: 3}]);
 
+    self.db = res;
     equal(res.length, 2, "I got two record");
     equal(res[0].key, 1, "It is the right first");
     equal(res[1].key, 3, "It is the right last");
