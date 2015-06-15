@@ -850,17 +850,7 @@ var bracket = (function(){
       return ret;
     },
 
-    index2data: function (list) {
-      var ret = [];
-
-      for(var ix = 0, len = list.length; ix < len; ix++) {
-        ret[ix] = this[list[ix]];
-      }
-
-      return ret;
-    },
-
-
+    //
     // This isn't a true schema derivation ... it's a spot check
     // over the data-set to try to show a general schema ... since
     // this is essentially a schema-less document store there could
@@ -1266,7 +1256,7 @@ var bracket = (function(){
         unique = mthis.constraints.unique,
         existing = [],
         toInsert = [],
-        ixList = [];
+        insList = [];
 
       //
       // Parse the args put in.  
@@ -1323,7 +1313,7 @@ var bracket = (function(){
             existing.push(map_[which[unique]]);
 
             // put on the existing value
-            ixList.push(map_[which[unique]]);
+            insList.push(map_[which[unique]]);
 
             // Toggle our doAdd over to false.
             doAdd = false;
@@ -1370,12 +1360,12 @@ var bracket = (function(){
 
         mthis.push(which);
 
-        ixList.push(ix);
+        insList.push(which);
       });
 
       mthis.sync();
      
-      return mthis._chain(mthis.index2data(ixList));
+      return mthis._chain(insList);
     },
 
     // 
