@@ -132,6 +132,40 @@ var bracket = (function(){
         return array.map(cb) 
       } : mapSoft,
 
+    filter = [].filter ? Array.prototype.filter :
+      function(fun/*, thisArg*/) {
+        'use strict';
+
+        if (this === void 0 || this === null) {
+          throw new TypeError();
+        }
+
+        var t = Object(this);
+        var len = t.length >>> 0;
+        if (typeof fun !== 'function') {
+          throw new TypeError();
+        }
+
+        var res = [];
+        var thisArg = arguments.length >= 2 ? arguments[1] : void 0;
+        for (var i = 0; i < len; i++) {
+          if (i in t) {
+            var val = t[i];
+
+            // NOTE: Technically this should Object.defineProperty at
+            //       the next index, as push can be affected by
+            //       properties on Object.prototype and Array.prototype.
+            //       But that method's new, and collisions should be
+            //       rare, so use the more-compatible alternative.
+            if (fun.call(thisArg, val, i, t)) {
+              res.push(val);
+            }
+          }
+        }
+
+        return res;
+      },
+
     // each is a complex one
     each = [].forEach ?
       function (obj, cb) {
@@ -351,6 +385,7 @@ var bracket = (function(){
 
           // Wanting to do bracket.find(['field1', 'field2'], condition) 
           // seems convenient enough.
+          /*
           if(
             !_.isObj(filter[0]) &&
             filterList.length == 2
@@ -360,6 +395,7 @@ var bracket = (function(){
               return obj(row, _condition);
             });
           }
+          */
        
           console.log(filter);
           for(ix = 0; ix < filter.length; ix++) {
