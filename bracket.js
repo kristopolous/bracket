@@ -1064,12 +1064,18 @@ var bracket = (function(){
     //
     indexBy: function () {
       // set the order output to the raw
-      this.splice.apply(this, [0,0].concat(this.order.apply(this, arguments)));
+      this.splice.apply(
+        this, 
+        [0, this.length].concat(
+          slice.call(
+            this.order.apply(this, arguments)
+          )
+        )
+      );
     },
 
     _bubble: function(cb, args) {
       if(this.chained) {
-        console.log('here', cb, this.chained, args);
         return this.chained[cb].apply(this.chained, args || []);
       }
       return _stainKey;

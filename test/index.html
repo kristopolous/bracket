@@ -1758,6 +1758,7 @@ module("indexBy");
     equal(db[1].key, 3, "The second element is 3");
 
     db.indexBy('key', 'asc');
+    self.db = db;
     equal(db.length, 4, "The database still has 4 elements");
     equal(db[0].key, 2, "The first element is 2");
     equal(db[1].key, 3, "The second element is 3");
