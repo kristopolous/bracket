@@ -346,10 +346,7 @@ var bracket = (function(){
         // ([key1, key2, key3], rhs)
         // which means
         //  key1 == rhs || key2 == rhs || key3 == rhs ... 
-        if( 
-          _.isScalar(filter[0]) && 
-          filterList.length == 2
-        ) {
+        if(_.isScalar(filter[0]) && filterList.length == 2) {
 
           var 
             filterkey_list = filter, 
@@ -367,14 +364,18 @@ var bracket = (function(){
           self.comp = filterComp;
         } else {
           filterComp = map(filter, expression);
+          console.log(filterComp);
         }
         
         set = bracket.prototype.filter.call(set, function(row) {
+          var ret = true;
           for (var ix = 0; ix < filterComp.length; ix++) {
             if(filterComp[ix](row)) {
               return true;
             }
+            ret = false;
           }
+          return ret;
         });
       } else if(_.isFun(filter)) {
         var callback = filter;
