@@ -816,7 +816,6 @@ module("Finding");
       ),
       res = db.find([{key: 1}, {key: 3}]);
 
-    self.db = res;
     equal(res.length, 2, "I got two record");
     equal(res[0].key, 1, "It is the right first");
     equal(res[1].key, 3, "It is the right last");
@@ -911,6 +910,8 @@ module("Finding");
       ),
       res = db.find(['key1', 'key2'], 1);
 
+    self.db = db;
+    self.res = res;
     equal(res.length, 2, "I got two record");
     equal(res[0].key1, 1, "It is the right first");
     equal(res[1].key2, 1, "It is the right last");

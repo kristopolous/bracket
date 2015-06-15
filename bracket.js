@@ -53,6 +53,7 @@ var bracket = (function(){
       isFun: function(obj) { return !!(obj && obj.constructor && obj.call && obj.apply) },
       isBrk: function(obj) { return obj instanceof bracket },
       isStr: function(obj) { return !!(obj === '' || (obj && obj.charCodeAt && obj.substr)) },
+      isScalar: function(obj) { return _.isStr(obj) || _.isNum(obj) },
       isNum: function(obj) { return toString.call(obj) === '[object Number]' },
       isArr: [].isArray || function(obj) { return toString.call(obj) === '[object Array]' },
       isBool: function(obj){
@@ -131,40 +132,6 @@ var bracket = (function(){
       function(array, cb) { 
         return array.map(cb) 
       } : mapSoft,
-
-    filter = [].filter ? Array.prototype.filter :
-      function(fun/*, thisArg*/) {
-        'use strict';
-
-        if (this === void 0 || this === null) {
-          throw new TypeError();
-        }
-
-        var t = Object(this);
-        var len = t.length >>> 0;
-        if (typeof fun !== 'function') {
-          throw new TypeError();
-        }
-
-        var res = [];
-        var thisArg = arguments.length >= 2 ? arguments[1] : void 0;
-        for (var i = 0; i < len; i++) {
-          if (i in t) {
-            var val = t[i];
-
-            // NOTE: Technically this should Object.defineProperty at
-            //       the next index, as push can be affected by
-            //       properties on Object.prototype and Array.prototype.
-            //       But that method's new, and collisions should be
-            //       rare, so use the more-compatible alternative.
-            if (fun.call(thisArg, val, i, t)) {
-              res.push(val);
-            }
-          }
-        }
-
-        return res;
-      },
 
     // each is a complex one
     each = [].forEach ?
@@ -372,41 +339,43 @@ var bracket = (function(){
       // If we are looking at an array, then this acts as an OR, which means
       // that we just recursively do this.
       if(_.isArr(filter)) {
-        // If we just pass the inner array, this would be wrong because
-        // then it would operate as an AND so we need to do things individually.
-        var 
-          result = [], 
-          remaining = set;
 
-        // TODO: this feels wrong.
-        if (filter.length === 0) {
-          set = remaining;
+        var filterComp;
+
+        // this style is 
+        // ([key1, key2, key3], rhs)
+        // which means
+        //  key1 == rhs || key2 == rhs || key3 == rhs ... 
+        if( 
+          _.isScalar(filter[0]) && 
+          filterList.length == 2
+        ) {
+
+          var 
+            filterkey_list = filter, 
+            // remove it from the list so it doesn't get
+            // a further comprehension
+            filterkey_compare = filterList.pop();
+
+          filterComp = [function(row) {
+            for(var ix = 0; ix < filterkey_list.length; ix++) {
+              if(equal(row[filterkey_list[ix]], filterkey_compare)) {
+                return true;
+              }
+            }
+          }]
+          self.comp = filterComp;
         } else {
-
-          // Wanting to do bracket.find(['field1', 'field2'], condition) 
-          // seems convenient enough.
-          /*
-          if(
-            !_.isObj(filter[0]) &&
-            filterList.length == 2
-          ) {
-            var _condition = filterList.pop();
-            filter = map(filter, function(row) {
-              return obj(row, _condition);
-            });
-          }
-          */
-       
-          console.log(filter);
-          for(ix = 0; ix < filter.length; ix++) {
-            // console.log(ix, result, JSON.stringify(remaining), set);
-            result = result.concat(find(remaining, filter[ix]));
-            remaining = setdiff(remaining, result);
-          }
-
-          set = result;
-          // console.log(set);
+          filterComp = map(filter, expression);
         }
+        
+        set = bracket.prototype.filter.call(set, function(row) {
+          for (var ix = 0; ix < filterComp.length; ix++) {
+            if(filterComp[ix](row)) {
+              return true;
+            }
+          }
+        });
       } else if(_.isFun(filter)) {
         var callback = filter;
 
@@ -707,7 +676,14 @@ var bracket = (function(){
       // The invocation wrapping will also make this work magically, with proper
       // expressive usage.
       //
-      if(arguments.length == 1) {
+
+      if(arguments.length == 2 && _.isStr(arg1)) {
+        ret = {};
+        expr = arg1;
+
+        // if not, fall back on it 
+        ret[arg0] = new Function("x,rec", "try { return x " + expr + "} catch(e) {}");
+      } else {
         try {
           ret = new Function("x,rec", "try { return x " + expr + "} catch(e) {}");
         } catch(ex) {}
@@ -717,14 +693,6 @@ var bracket = (function(){
             ret = new Function("rec", "try { return " + arg0 + "} catch(e) {}");
           } catch(ex) {}
         }
-      }
-
-      if(arguments.length == 2 && _.isStr(arg1)) {
-        ret = {};
-        expr = arg1;
-
-        // if not, fall back on it 
-        ret[arg0] = new Function("x,rec", "try { return x " + expr + "} catch(e) {}");
       }
 
       return ret;
@@ -1434,6 +1402,40 @@ var bracket = (function(){
     a: function(){
       return slice.call(this);
     },
+
+    filter: [].filter ? Array.prototype.filter :
+      function(fun/*, thisArg*/) {
+        'use strict';
+
+        if (this === void 0 || this === null) {
+          throw new TypeError();
+        }
+
+        var t = Object(this);
+        var len = t.length >>> 0;
+        if (typeof fun !== 'function') {
+          throw new TypeError();
+        }
+
+        var res = [];
+        var thisArg = arguments.length >= 2 ? arguments[1] : void 0;
+        for (var i = 0; i < len; i++) {
+          if (i in t) {
+            var val = t[i];
+
+            // NOTE: Technically this should Object.defineProperty at
+            //       the next index, as push can be affected by
+            //       properties on Object.prototype and Array.prototype.
+            //       But that method's new, and collisions should be
+            //       rare, so use the more-compatible alternative.
+            if (fun.call(thisArg, val, i, t)) {
+              res.push(val);
+            }
+          }
+        }
+
+        return res;
+      },
 
     //
     // remove
