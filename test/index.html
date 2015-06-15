@@ -134,7 +134,6 @@ module('copy');
       db = bracket([{a: 1}, {a: 2}, {a: 3}]),
       db1 = bracket(bracket.copy(db));
 
-    console.log(db, db1);
     db1[1].a = 100;
     equal(db[1].a, 2, "Copy modifies independent data");
     equal(db1[1].a, 100, "Copy modifies independent data");
@@ -410,10 +409,8 @@ module("Removal");
       res,
       ix = 0;
 
-    self.db = db;
     for(ix = 0; ix < 10; ix ++) {
       db.insert( db.remove({key1: 'value3'}) );
-      console.log(db.length);
     }
 
     equal(db.length, 3, "There's three elements");
@@ -500,9 +497,7 @@ module("unset");
       );
 
     var ret = db.find({key1: 0});
-    console.log('myret', ret);
     ret.unset('key2');
-    console.log(ret);
 
     equal('key2' in db[0], false, "key2 not in the first record");
     equal('key2' in db[1], true, "key2 in the second record still");
@@ -532,7 +527,6 @@ module("update");
       ),
       res = db.update({key4: 0});
 
-    self.db = db;
     equal(db[0].key4, 0, "Checks out");
     equal(db[1].key4, 0, "Checks out");
     equal(db[2].key4, 0, "Checks out");
@@ -569,7 +563,6 @@ module("update");
   });
 
   test("Add a Key/Value pair by keyed Function with global variables", function(){
-    self.i = 0;
     var 
       db = bracket({}, {}, {}, {}),
       res = db.update({a: bracket('i++')});
@@ -579,7 +572,6 @@ module("update");
     equal(db[2].a, 2, "Checks out");
     equal(db[3].a, 3, "Checks out");
 
-    self.i = 0xBADC0DE;
   });
 
   test("Add a Key/Value pair by keyed Function with local variables", function(){
@@ -734,7 +726,6 @@ module("Finding");
       ),
       res = db.find(bracket.exec('key1', '=== 0'));
 
-    self.db = db;
     equal(res.length, 1, "I got one record");
     equal(res[0].key1, 0, "It is the right one");
     equal(typeof res.find, 'function', "It looks to be chained");
@@ -1474,7 +1465,6 @@ module('invert');
       ),
       res = db.find({key1: 0}).invert();
 
-    self.db = db;
     equal(res.length, 2, "I got two records");
     equal(res[0].key2, 'value2', "It is the right one");
     equal(typeof res.find, 'function', "It looks to be chained");
@@ -1758,7 +1748,6 @@ module("indexBy");
     equal(db[1].key, 3, "The second element is 3");
 
     db.indexBy('key', 'asc');
-    self.db = db;
     equal(db.length, 4, "The database still has 4 elements");
     equal(db[0].key, 2, "The first element is 2");
     equal(db[1].key, 3, "The second element is 3");
@@ -1827,7 +1816,6 @@ module('each');
     ]);
 
     db.find().select('key').each(function(what) {
-      console.log(what);
       equal(!([5,3,7,2].indexOf(what) + 1), false, "The function is run");
     });
   });
@@ -1843,7 +1831,6 @@ module('each');
     var res = db.select('key').each(function(what) {
       return what;
     });
-    console.log(res);
 
     equal(res.join(','), 'false,7,2', "The right data came back");
   });
@@ -1906,7 +1893,6 @@ module('order');
       {id:4,a:1}
     );
 
-    console.log(db.find());
     // increment the existing entries by ins.length which
     // are past $start
     db 
