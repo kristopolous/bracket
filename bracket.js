@@ -1471,7 +1471,7 @@ var bracket = (function(){
     });
   });
 
-  extend(bracket, {
+  return extend(bracket, {
     all: [],
     find: find,
     diff: setdiff,
@@ -1548,5 +1548,4 @@ var bracket = (function(){
     }
   });
 
-  return bracket;
 })();
