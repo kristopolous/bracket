@@ -380,7 +380,7 @@ var bracket = (function(){
             value = isin(value);
           }
 
-          if( _.isFun(value)) {
+          if(_.isFun(value)) {
             filterComp = function(which) {
               // Check for existence
               if( key in which ) {
@@ -433,6 +433,7 @@ var bracket = (function(){
   //
   // This is like the SQL "in" operator, which is a reserved JS word.  You can invoke it either
   // with a static array or a callback
+  //
   var isin = function (param1, param2) {
     var 
       callback,
@@ -1093,7 +1094,7 @@ var bracket = (function(){
           order = new Function('x,y', fwrap(order));
         }
 
-        eval('fnSort=function(a,b){return order(a.' + key + ', b.' + key + ')}');
+        fnSort = eval('(function(a,b){return order(a.' + key + ', b.' + key + ')})');
       }
       return this._chain(Array.prototype.sort.call(this,fnSort));
     },
@@ -1127,9 +1128,9 @@ var bracket = (function(){
           field = '.' + field;
         }
 
-        eval( "keyer = function(r,ref){try{ref[rX] = update[rX] = r;} catch(x){}}".replace(/X/g, field));
+        keyer = eval( "(function(r,ref){try{ref[rX] = update[rX] = r;}catch(x){}})".replace(/X/g, field));
       } else {
-        eval( "keyer = function(r,ref){try{ with(r) { var val = X }; ref[val] = update[val] = r;} catch(x){}}".replace(/X/g, field));
+        keyer = eval( "(function(r,ref){try{with(r){ var val = X };ref[val] = update[val] = r;}catch(x){}})".replace(/X/g, field));
       }
 
       function update(whence) {
@@ -1377,7 +1378,7 @@ var bracket = (function(){
       function(fun/*, thisArg*/) {
         'use strict';
 
-        var t = Object(this);
+        var t = this;
         var len = t.length >>> 0;
 
         var res = [];

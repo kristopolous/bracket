@@ -1998,37 +1998,6 @@ module('group');
   });
 });
 
-test("perf", function(){
-  var m = bracket();
-
-  for(var ix = 0; ix < 5000; ix++) {
-    m.push({key: Math.floor(Math.random() * 10)});
-    m.push({key: Math.floor(Math.random() * 10).toString()});
-  }
-  
-  var fun, start, end, resFilter, ffirst = 0, resSplice, spliceTtl = 0, filterTtl = 0, ts;
-  for(var ix = 0; ix < 10; ix++) {
-    fun = bracket.exec({key: ix});
-
-    start = +new Date();
-    resSplice = m.findFirst(fun);
-    ts = (+new Date()) - start;
-    ffirst += ts;
-
-    start = +new Date();
-    resSplice = m.find(fun);
-    ts = (+new Date()) - start;
-    spliceTtl += ts;
-
-    start = +new Date();
-    resFilter = m.filter(fun);
-    ts = (+new Date()) - start;
-    filterTtl += ts;
-    console.log(resSplice.length == resFilter.length);
-  }
-  console.log('ff', ffirst, 'splice', spliceTtl, filterTtl); 
-  equal(1,1);
-});
 </script>
 
 
