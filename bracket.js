@@ -595,6 +595,10 @@ var bracket = (function(){
     }
   }
 
+  function fwrap(str) {
+    return "try{return " + str + "}catch(e){}";
+  }
+
   var expression = function(arg0, arg1) {
     var ret, expr;
 
@@ -622,18 +626,18 @@ var bracket = (function(){
 
       if(arguments.length == 2 && _.isStr(arg1)) {
         expr = arg1;
-        ret = new Function("x,rec", "try { return x." + arg0 + expr + "} catch(e) {}");
+        ret = new Function("x,rec", fwrap("x." + arg0 + expr));
 
         // if not, fall back on it 
-        ret[arg0] = new Function("x,rec", "try { return x " + expr + "} catch(e) {}");
+        ret[arg0] = new Function("x,rec", fwrap("x " + expr));
       } else {
         try {
-          ret = new Function("x,rec", "try { return x " + expr + "} catch(e) {}");
+          ret = new Function("x,rec", fwrap("x " + expr));
         } catch(ex) {}
 
         if(!ret) {
           try {
-            ret = new Function("rec", "try { return " + arg0 + "} catch(e) {}");
+            ret = new Function("rec", fwrap(arg0));
           } catch(ex) {}
         }
       }
@@ -670,7 +674,7 @@ var bracket = (function(){
       callback = callback[1];
     }
 
-    if((this instanceof bracket) || _.isArr(filter)) {
+    if(_.isBrk(this) || _.isArr(filter)) {
       ret = mapSoft(filter, callback);
     } else {
       ret = {};
@@ -708,7 +712,7 @@ var bracket = (function(){
       return expression.apply(this, arguments);
     }
 
-    if(!(this instanceof bracket)) {
+    if(!_.isBrk(this)) {
       return construct(bracket, slice.call(arguments));
     }
 
@@ -900,8 +904,15 @@ var bracket = (function(){
     // This is a shorthand to find for when you are only expecting one result.
     // A boolean false is returned if nothing is found
     findFirst: function(){
-      var res = this.find.apply(this, arguments);
-      return res.length ? res[0] : false;
+      var realFilter = bracket.prototype.filter, res = false;
+      bracket.prototype.filter = bracket.prototype.filterThrow;
+      try { 
+        this.find.apply(this, arguments);
+      } catch(ex) {
+        res = ex;
+      }
+      bracket.prototype.filter = realFilter;
+      return res;
     },
 
     has: has,
@@ -1077,7 +1088,7 @@ var bracket = (function(){
         }
 
         if(_.isStr(order)) {
-          order = new Function('x,y', 'return ' + order);
+          order = new Function('x,y', fwrap(order));
         }
 
         eval('fnSort=function(a,b){return order(a.' + key + ', b.' + key + ')}');
@@ -1345,19 +1356,31 @@ var bracket = (function(){
       return slice.call(this);
     },
 
+    filterThrow: function(fun/*, thisArg*/) {
+      var t = Object(this);
+      var len = t.length >>> 0;
+
+      var res = [];
+      var thisArg = arguments.length >= 2 ? arguments[1] : void 0;
+      for (var i = 0; i < len; i++) {
+        if (i in t) {
+          var val = t[i];
+
+          if (fun.call(thisArg, val, i, t)) {
+            throw val;
+          }
+        }
+      }
+
+      return res;
+    },
+
     filter: [].filter ? Array.prototype.filter :
       function(fun/*, thisArg*/) {
         'use strict';
 
-        if (this === void 0 || this === null) {
-          throw new TypeError();
-        }
-
         var t = Object(this);
         var len = t.length >>> 0;
-        if (typeof fun !== 'function') {
-          throw new TypeError();
-        }
 
         var res = [];
         var thisArg = arguments.length >= 2 ? arguments[1] : void 0;
@@ -1499,16 +1522,11 @@ var bracket = (function(){
       return obj; 
     },
 
-    findFirst: function(){
-      var res = find.apply(this, arguments);
-      return res.length ? res[0] : {};
-    },
-
     // This does a traditional left-reduction on a list
     // as popular in list comprehension suites common in 
     // functional programming.
     reduceLeft: function(memo, callback) {
-      var lambda = _.isStr(callback) ? new Function("y,x", "return y " + callback) : callback;
+      var lambda = _.isStr(callback) ? new Function("y,x", fwrap("y " + callback)) : callback;
 
       return function(list) {
         var reduced = memo;
