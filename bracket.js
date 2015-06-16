@@ -31,12 +31,14 @@ var bracket = (function(){
     _u,
 
     // prototypes and short cuts
-    slice = Array.prototype.slice,  
+    _slice = function(m){ 
+      return Array.prototype.slice.call(m);
+    },
     arrify = function(arg) {
       return map(
-        slice.call(arg), 
+        _slice(arg), 
         function(m) {
-          return slice.call(m);
+          return _slice(m);
         }
       );
     },
@@ -159,7 +161,7 @@ var bracket = (function(){
 
   // This is from underscore. It's a <<shallow>> object merge.
   function extend(obj) {
-    each(slice.call(arguments, 1), function(source) {
+    each(Array.prototype.slice.call(arguments, 1), function(source) {
       if (source) {
         for (var prop in source) {
           obj[prop] = source[prop];
@@ -199,7 +201,7 @@ var bracket = (function(){
       if(_.isFun(value)) {
         obj.__trace__[key] = value;
         obj[key] = function() {
-          console.log([key + ":" ].concat(slice.call(arguments)));
+          console.log([key + ":" ].concat(_slice(arguments)));
           if(cb) { cb.apply(this, arguments); }
           return obj.__trace__[key].apply(this, arguments);
         }
@@ -210,7 +212,7 @@ var bracket = (function(){
   function copy(obj) {
     // we need to call slice for array-like objects, such as the dom
     return _.isObj(obj) ? (
-      'length' in obj ? slice.call(obj) : values(obj)
+      'length' in obj ? _slice(obj) : values(obj)
     ) : obj;
   }
 
@@ -298,7 +300,7 @@ var bracket = (function(){
 
   function find() {
     var 
-      filterList = slice.call(arguments),
+      filterList = _slice(arguments),
       filter,
       filterIx,
 
@@ -713,7 +715,7 @@ var bracket = (function(){
     }
 
     if(!_.isBrk(this)) {
-      return construct(bracket, slice.call(arguments));
+      return construct(bracket, _slice(arguments));
     }
 
     var mthis = this;
@@ -757,7 +759,7 @@ var bracket = (function(){
       else if(_.isFun(arg0)) { this.insert(arg0()) }
       else if(_.isObj(arg0)) { this.insert(arg0) }
     } else if(arguments.length > 1) {
-      this.insert(slice.call(arguments));
+      this.insert(_slice(arguments));
     }
 
     // Register this instance.
@@ -786,7 +788,7 @@ var bracket = (function(){
     reverse: function() {
       // We start with a new instance of our own object, myArray
       var ret = new bracket();
-      ret.splice.apply(ret, [0, 0].concat(slice.call(this).reverse()));
+      ret.splice.apply(ret, [0, 0].concat(_slice(this).reverse()));
       return ret;
     },
 
@@ -806,7 +808,7 @@ var bracket = (function(){
           [0, 0],
 
           // with our object as an array
-          slice.call(this).concat(
+          _slice(this).concat(
 
             // added to the arguments, as an array
             arrify(arguments) 
@@ -919,7 +921,7 @@ var bracket = (function(){
 
     // hasKey is to get records that have keys defined
     hasKey: function() {
-      var inner = this.find(missing(slice.call(arguments)));
+      var inner = this.find(missing(_slice(arguments)));
 
       return this.invert(inner, this);
     },
@@ -935,7 +937,7 @@ var bracket = (function(){
 
     // Missing is to get records that have keys not defined
     missing: function() { 
-      var base = missing(slice.call(arguments));
+      var base = missing(_slice(arguments));
       return this.chained ? this.find(base) : base;
     },
 
@@ -1033,7 +1035,7 @@ var bracket = (function(){
       this.splice.apply(
         this, 
         [0, this.length].concat(
-          slice.call(
+          _slice(
             this.order.apply(this, arguments)
           )
         )
@@ -1097,7 +1099,7 @@ var bracket = (function(){
     },
 
     where: function() {
-      var args = slice.call(arguments);
+      var args = _slice(arguments);
 
       // Addresses test 23 (Finding: Find all elements cascaded, 3 times)
       if(!_.isBrk(this)) {
@@ -1188,7 +1190,7 @@ var bracket = (function(){
         resultList = {};
 
       if(arguments.length > 1) {
-        field = slice.call(arguments);
+        field = _slice(arguments);
       } else if (_.isStr(field)) {
         field = [field];
       }
@@ -1240,7 +1242,7 @@ var bracket = (function(){
       // If it's a comma seperated list then make the 
       // list to insert all the args
       if(arguments.length > 1) {
-        toInsert = slice.call(arguments);
+        toInsert = _slice(arguments);
 
         // if it was an array, then just assign it.
       } else if (_.isArr(param)) {
@@ -1249,7 +1251,7 @@ var bracket = (function(){
         // otherwise it's one argument and 
         // we just insert that alone.
       } else if (_.isBrk(param)) {
-        toInsert = slice.call(param);
+        toInsert = _slice(param);
       } else {
         toInsert = [param];
       } 
@@ -1350,10 +1352,6 @@ var bracket = (function(){
     //
     flash: function(list) {
       this.splice.apply(this, [0,0].concat(list));
-    },
-
-    a: function(){
-      return slice.call(this);
     },
 
     filterThrow: function(fun/*, thisArg*/) {
@@ -1503,7 +1501,7 @@ var bracket = (function(){
         return copy(what);
       }));
       ret.length = data.length;
-      return slice.call(ret);
+      return _slice(ret);
     },
 
     objectify: function(keyList, values) {
