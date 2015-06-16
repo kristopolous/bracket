@@ -2001,14 +2001,14 @@ module('group');
 test("perf", function(){
   var m = bracket();
 
-  for(var ix = 0; ix < 30000; ix++) {
+  for(var ix = 0; ix < 500; ix++) {
     m.push({key: Math.floor(Math.random() * 10)});
+    m.push({key: Math.floor(Math.random() * 10).toString()});
   }
   
   var fun, start, end, resFilter, resSplice, spliceTtl = 0, filterTtl = 0, ts;
   for(var ix = 0; ix < 10; ix++) {
     fun = bracket.exec({key: ix});
-    console.log(fun.toString());
 
     start = +new Date();
     resSplice = m.find(fun);

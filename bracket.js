@@ -56,6 +56,7 @@ var bracket = (function(){
       isScalar: function(obj) { return _.isStr(obj) || _.isNum(obj) },
       isNum: function(obj) { return toString.call(obj) === '[object Number]' },
       isArr: [].isArray || function(obj) { return toString.call(obj) === '[object Array]' },
+      isUndef: function(obj) { return isNaN(obj) || (obj === null) || (obj === undefined) },
       isBool: function(obj){
         return obj === true || obj === false || toString.call(obj) == '[object Boolean]';
       },
@@ -68,12 +69,6 @@ var bracket = (function(){
         return obj == null ? 
           String( obj ) == 'object' : 
           toString.call(obj) === '[object Object]' || true ;
-      }
-    },
-
-    proxy = function(what, caller) {
-      return function() {
-        caller.apply(what, arguments);
       }
     },
 
@@ -109,12 +104,6 @@ var bracket = (function(){
         ret.push(obj[key]);
       }
 
-      return ret;
-    },
-
-    obj = function(key, value) {
-      var ret = {};
-      ret[key] = value;
       return ret;
     },
 
@@ -490,10 +479,12 @@ var bracket = (function(){
 
   function equal(lhs, rhs) {
     return (lhs === rhs) || (
-        (lhs.join && rhs.join) &&
-        (lhs.sort().toString() === rhs.sort().toString())
-      ) || 
-      (JSON.stringify(lhs) === JSON.stringify(rhs));
+        !_.isUndef(lhs) && (
+          (lhs.join && rhs.join) &&
+          (lhs.sort().toString() === rhs.sort().toString())
+        ) || 
+        (JSON.stringify(lhs) === JSON.stringify(rhs)
+      ));
   }
 
   function isArray(what) {
@@ -652,14 +643,12 @@ var bracket = (function(){
       // We're getting things like {a: b} etc
     } else if (_.isObj( arg0 )) {
 
-      return function(rec) {
-        for(var key in arg0) {
-          if(!equal(rec[key], arg0[key])) {
-            return false;
-          }
-        }
-        return true;
-      }
+      var cList = [];
+      for(var key in arg0) {
+        cList.push("equal(rec['" + key + "']," + (_.isScalar(arg0[key]) ? arg0[key] : "arg0[" + key +"]")  +")");
+      };
+
+      return eval('(function(rec){ return ' + cList.join('&&') + '})');
     }
   }
 
