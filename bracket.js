@@ -89,7 +89,7 @@ var bracket = (function(){
         return i;
       },
 
-    keys = ({}).keys || function (obj) {
+    keys = Object.keys || function (obj) {
       var ret = [];
 
       for(var key in obj) {
@@ -100,13 +100,11 @@ var bracket = (function(){
     },
 
     values = function (obj) {
-      var ret = [];
-
-      for(var key in obj) {
-        ret.push(obj[key]);
-      }
-
-      return ret;
+      return map(
+        keys(obj), function(key) { 
+          return obj[key];
+        }
+      );
     },
 
     mapSoft = function(array, cb) {
