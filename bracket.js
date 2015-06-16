@@ -46,7 +46,7 @@ var bracket = (function(){
 
     // For computing set differences
     _stainID = 0,
-    _stainKey = '_4ab92bf03191c585f182',
+    _stainKey = '_4ab92bf03191c5',
     _dbIx = 0,
 
     // type checking system
@@ -55,7 +55,7 @@ var bracket = (function(){
       isFun: function(obj) { return !!(obj && obj.constructor && obj.call && obj.apply) },
       isBrk: function(obj) { return obj instanceof bracket },
       isStr: function(obj) { return !!(obj === '' || (obj && obj.charCodeAt && obj.substr)) },
-      isScalar: function(obj) { return _.isStr(obj) || _.isNum(obj) },
+      isScalar: function(obj) { return _.isStr(obj) || _.isNum(obj) || _.isBool(obj) },
       isNum: function(obj) { return toString.call(obj) === '[object Number]' },
       isArr: [].isArray || function(obj) { return toString.call(obj) === '[object Array]' },
       isUndef: function(obj) { return isNaN(obj) || (obj === null) || (obj === undefined) },
@@ -110,6 +110,7 @@ var bracket = (function(){
     },
 
     mapSoft = function(array, cb) {
+      console.log(array, cb);
       var ret = [];
 
       for ( var i = 0, len = array.length; i < len; i++ ) { 
@@ -131,7 +132,7 @@ var bracket = (function(){
         if (_.isArr(obj)) { 
           if (obj.length === 0) { return; }
           obj.forEach(cb);
-        } else if(_.isStr(obj) || _.isNum(obj) || _.isBool(obj)) {
+        } else if(_.isScalar(obj)) {
           cb(obj);
         } else {
           for( var key in obj ) {
@@ -247,9 +248,9 @@ var bracket = (function(){
   function stain(list) {
     _stainID++;
 
-    for(var ix = 0, len = list.length; ix < len; ix++) {
-      list[ix][_stainKey] = _stainID;
-    }
+    each(list, function(ix, el) {
+      el[_stainKey] = _stainID;
+    });
   }
 
   function unstain(obj) {
@@ -677,8 +678,8 @@ var bracket = (function(){
       callback = callback[1];
     }
 
-    if(_.isBrk(this) || _.isArr(filter)) {
-      ret = mapSoft(filter, callback);
+    if(_.isBrk(filter) || _.isArr(filter)) {
+      ret = map(_slice(filter), callback);
     } else {
       ret = {};
 
@@ -695,7 +696,7 @@ var bracket = (function(){
   // see http://stackoverflow.com/questions/1606797/use-of-apply-with-new-operator-is-this-possible
   function construct(constructor, args) {
     function F() {
-        return constructor.apply(this, args);
+      return constructor.apply(this, args);
     }
     F.prototype = constructor.prototype;
     return new F();
@@ -743,7 +744,6 @@ var bracket = (function(){
       Object.defineProperty(mthis, key, {
         value: value,
         writable: true,
-        configurable: true,
         enumerable: false
       });
     });
@@ -1356,8 +1356,8 @@ var bracket = (function(){
     },
 
     filterThrow: function(fun/*, thisArg*/) {
-      var t = Object(this);
-      var len = t.length >>> 0;
+      var t = this;
+      var len = t.length;
 
       var res = [];
       var thisArg = arguments.length >= 2 ? arguments[1] : void 0;
@@ -1378,14 +1378,14 @@ var bracket = (function(){
       function(fun/*, thisArg*/) {
         'use strict';
 
-        var t = this;
-        var len = t.length >>> 0;
+        var t = this, val;
+        var len = t.length;
 
         var res = [];
         var thisArg = arguments.length >= 2 ? arguments[1] : void 0;
         for (var i = 0; i < len; i++) {
           if (i in t) {
-            var val = t[i];
+            val = t[i];
 
             if (fun.call(thisArg, val, i, t)) {
               res.push(val);
@@ -1459,7 +1459,6 @@ var bracket = (function(){
   }, function(key, value) {
     Object.defineProperty(bracket.prototype, key, {
       value: value,
-      configurable: true,
       writable: true
     });
   });
@@ -1470,9 +1469,7 @@ var bracket = (function(){
     find: bracket.prototype.where
   }, function(key, value) {
     Object.defineProperty(bracket.prototype, key, {
-      value: value,
-      configurable: true,
-      writable: true
+      value: value
     });
   });
 
